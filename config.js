@@ -1,3 +1,2 @@
-// Adresse deiner Supabase-Funktion, z. B. https://abcdefgh.supabase.co/functions/v1/spotbuch
-window.SPOTBUCH_API = '';
-
+// Adresse der Supabase-Funktion
+window.SPOTBUCH_API = 'https://sjqhwobbejcwrqtviutt.supabase.co/functions/v1/spotbuch';
