@@ -192,6 +192,8 @@ img{max-width:100%;display:block}
 .fact b{font:700 12px/1 var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:4px}
 .fine{font-size:12px;color:var(--muted)}
 .edit-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.picklist{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.picklist:empty{display:none}
 @media (max-width:360px){.edit-row,.row2{grid-template-columns:1fr}}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(90px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--ground);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;z-index:80;max-width:calc(100% - 32px)}
 .sample-art,.art{width:100%;height:100%;display:block}
@@ -296,7 +298,7 @@ img{max-width:100%;display:block}
       </div>
       <div class="msg err" id="photoErr" hidden></div>
       <button class="btn primary block" id="btnScan" type="button" disabled>Fahrzeug scannen</button>
-      <button class="btn ghost block" id="btnManual" type="button" hidden>Ohne Scan speichern</button>
+      <button class="btn ghost block" id="btnManual" type="button" hidden>Ohne KI im Autodex wählen</button>
     </div>
 
     <div id="stepScan" class="sheet-in" hidden>
@@ -1468,7 +1470,7 @@ function renderShots(){
   const full = draft.shots.length >= state.maxShots;
   $('#btnCam').disabled = full; $('#btnGal').disabled = full;
   $('#btnScan').hidden = !state.sample; $('#btnScan').disabled = !draft.shots.length;
-  $('#btnManual').hidden = !!state.sample || !draft.shots.length;
+  $('#btnManual').hidden = !draft.shots.length;
   $('#shotHint').textContent = state.maxShots > 1
     ? 'Tipp: Front, Heck und Seite fotografieren und Schriftzüge an Kotflügel, Heck und Felgen mit draufnehmen. Daran erkennt der Scan Tuner wie Mansory oder Brabus.'
     : 'Tipp: Fotografiere das Auto schräg von vorne, mit Schriftzügen an Kotflügel und Felgen im Bild.';
@@ -1542,7 +1544,7 @@ function normalize(r){
   };
 }
 
-const SCAN_OFF = ['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed', 'images_unavailable'];
+const SCAN_OFF = ['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed', 'images_unavailable', 'api_key'];
 const SCAN_MSG = {
   rate_limited: 'Gerade zu viele Scans. Warte kurz und tipp dann nochmal auf „Fahrzeug scannen“.',
   session_expired: 'Deine Claude-Anmeldung ist abgelaufen. Melde dich neu an und versuch es nochmal.',
@@ -1578,7 +1580,7 @@ async function runScan(fresh){
     if (code === 'cancelled') return;
     if (SCAN_OFF.includes(code)){
       state.sample = null; renderShots();
-      showErr('#photoErr', 'Der KI-Scan ist hier nicht freigegeben. Du kannst den Spot trotzdem speichern und Marke und Modell selbst eintragen.');
+      showErr('#photoErr', 'Der KI-Scan ist gerade nicht verfügbar. Tipp auf „Ohne KI im Autodex wählen“ und such das Auto selbst aus.');
       return;
     }
     showErr('#photoErr', SCAN_MSG[code] || 'Verbindungsproblem beim Scan. Versuch es gleich nochmal.');
@@ -1603,12 +1605,40 @@ function renderResultInfo(){
       cuesList(s),
       s.fakt ? h('div', {class:'fact'}, h('b', {}, 'Wusstest du?'), s.fakt) : null] : null);
 }
+// Auto oder Tuner-Kit direkt aus dem Autodex wählen (ohne KI-Scan oder zum Korrigieren)
+function autodexPicker(s){
+  const list = h('div', {class:'picklist'});
+  const choose = e => {
+    const b = e.isKit ? ENTRY[e.basis] : e;
+    s.auto_id = b ? b.id : null;
+    s.kit_id = e.isKit ? e.id : null;
+    s.tuner = e.isKit ? {marke: e.tuner, kit: e.kit, sicher: true} : null;
+    s.marke = b?.marke || ''; s.modell = b?.modell || '';
+    s.variante = ''; s.serie = {}; s.kitWerte = null; s.merkmale = []; s.fakt = '';
+    s.seltenheit = e.rar; s.erkannt = true; s.sicherheit = 0;
+    showResult();
+  };
+  const search = q => {
+    const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+    const hits = words.length ? ENTRIES.filter(e => {
+      const hay = (entryName(e) + ' ' + (e.isKit ? baseName(e) : '')).toLowerCase();
+      return words.every(w => hay.includes(w));
+    }).slice(0, 8) : [];
+    list.replaceChildren(...hits.map(e => h('button', {class:'chip', type:'button', onclick: () => choose(e)},
+      entryName(e) + (e.isKit ? ' (' + baseName(e) + ')' : ''))));
+  };
+  return h('div', {class:'field'},
+    h('label', {for:'edPick'}, 'Aus dem Autodex wählen'),
+    h('input', {id:'edPick', type:'search', autocomplete:'off', placeholder:'z. B. Venatus, M3, Urus, Golf GTI', oninput: e => search(e.target.value)}),
+    list);
+}
+
 function showResult(){
   const s = draft.scan, conf = s.sicherheit;
   let note = null;
-  if (!s.erkannt) note = h('div', {class:'msg err'}, state.sample
-    ? 'Kein Auto sicher erkannt. Trag Marke und Modell selbst ein oder scanne mit einem näheren Foto neu.'
-    : 'Trag Marke und Modell selbst ein.');
+  if (!s.erkannt) note = h('div', {class:'msg'}, state.sample
+    ? 'Kein Auto sicher erkannt. Such es im Autodex oder trag Marke und Modell selbst ein.'
+    : 'Such das Auto im Autodex und tipp auf den Treffer. Werte, Tuner und Punkte kommen dann automatisch.');
   else if (conf && conf < 0.5) note = h('div', {class:'msg'}, 'Der Scan ist sich unsicher. Prüf die Angaben und korrigier sie, falls nötig.');
   const setTuner = (key, v) => {
     const t = {marke: s.tuner?.marke || '', kit: s.tuner?.kit || '', sicher: true, [key]: v};
@@ -1621,6 +1651,7 @@ function showResult(){
   fill($('#resultView'),
     h('div', {class:'shot'}, h('img', {src: draft.shots[0].url, alt:''})),
     note,
+    autodexPicker(s),
     h('div', {class:'edit-row'},
       field('edMarke', 'Marke', s.marke, v => { s.marke = v; s.auto_id = null; renderResultInfo(); }),
       field('edModell', 'Modell', s.modell, v => { s.modell = v; s.auto_id = null; renderResultInfo(); })),
