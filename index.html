@@ -192,7 +192,13 @@ img{max-width:100%;display:block}
 .fact b{font:700 12px/1 var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:4px}
 .fine{font-size:12px;color:var(--muted)}
 .edit-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.picklist{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.picklist{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.pickrow{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px}
+.pickimg{flex:0 0 76px;border-radius:6px;overflow:hidden;aspect-ratio:16/9;background:#23272d}
+.pickimg .art{height:100%}
+.picktxt{display:flex;flex-direction:column;min-width:0;gap:1px}
+.picktxt b{font:700 16px/1.15 var(--display);overflow-wrap:anywhere}
+.picktxt small{color:var(--muted);font-size:12px}
 .picklist:empty{display:none}
 @media (max-width:360px){.edit-row,.row2{grid-template-columns:1fr}}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(90px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--ground);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;z-index:80;max-width:calc(100% - 32px)}
@@ -543,6 +549,7 @@ e63|AMG E 63 S|l|612|300|130000|3
 s|S-Klasse|l|367|250|120000|2
 s63|AMG S 63 E Performance|l|802|290|210000|4
 maybach|Maybach S 680|l|612|250|260000|4
+sl680|Maybach SL 680 Monogram Series|r|585|260|230000|5
 cls|CLS|l|265|250|75000|2
 gla|GLA|s|163|210|42000|1
 glc|GLC|s|204|219|58000|1
@@ -1261,6 +1268,25 @@ function spottedMap(){
     if (id && ENTRY[id]){ if (!m.has(id)) m.set(id, []); m.get(id).push(s); }
   return m;
 }
+// Suche ohne Rücksicht auf Groß-/Kleinschreibung, Leerzeichen und Bindestriche: "sl680" findet "SL 680"
+const normKey = t => String(t).toLowerCase().normalize('NFKD').replace(/[^a-z0-9]/g, '');
+const ALIASES = {volkswagen: 'vw', benz: 'mercedes', mercedesbenz: 'mercedes', merc: 'mercedes', lambo: 'lamborghini', rolls: 'rollsroyce'};
+const queryWords = q => String(q).toLowerCase().split(/\s+/).map(normKey).filter(Boolean).map(w => ALIASES[w] || w);
+const searchKey = e => e._key || (e._key = normKey(entryName(e) + ' ' + (e.isKit ? baseName(e) : '') + ' ' + BODY_LABEL[e.body]));
+const matchWords = (e, words) => words.every(w => searchKey(e).includes(w));
+function searchEntries(q, max){
+  const words = queryWords(q);
+  if (!words.length) return [];
+  return ENTRIES.filter(e => matchWords(e, words))
+    .map(e => {
+      const name = normKey(e.isKit ? e.kit : e.modell);
+      const brand = normKey(e.isKit ? e.tuner : e.marke);
+      const score = (words.some(w => brand === w) ? 3 : 0) + (words.some(w => name === w) ? 2 : 0)
+        + (words.some(w => name.startsWith(w)) ? 1 : 0) - searchKey(e).length / 100;
+      return [score, e];
+    })
+    .sort((a, b) => b[0] - a[0]).slice(0, max).map(x => x[1]);
+}
 const DEX_FILTERS = [['all', 'Alle'], ['kits', 'Tuner-Kits'], ['seen', 'Gespottet'], ['open', 'Noch offen'], ['legend', 'Legendär']];
 function renderDex(){
   const seen = spottedMap();
@@ -1268,15 +1294,14 @@ function renderDex(){
   $('#dexTotal').textContent = ENTRIES.length;
   $('#dexBar').style.width = (seen.size / ENTRIES.length * 100).toFixed(1) + '%';
   chips($('#dexFilters'), DEX_FILTERS, state.dexFilter, k => { state.dexFilter = k; state.dexShown = 60; renderDex(); });
-  const f = state.dexFilter, words = state.dexQuery.toLowerCase().split(/\s+/).filter(Boolean);
+  const f = state.dexFilter, words = queryWords(state.dexQuery);
   const list = ENTRIES.filter(e => {
     if (f === 'kits' && !e.isKit) return false;
     if (f === 'seen' && !seen.has(e.id)) return false;
     if (f === 'open' && seen.has(e.id)) return false;
     if (f === 'legend' && e.rar < 5) return false;
     if (!words.length) return true;
-    const hay = (entryName(e) + ' ' + (e.isKit ? baseName(e) : '') + ' ' + BODY_LABEL[e.body]).toLowerCase();
-    return words.every(w => hay.includes(w));
+    return matchWords(e, words);
   });
   const grid = $('#dexGrid'); grid.replaceChildren();
   if (!list.length) grid.append(h('div', {class:'empty-note'}, 'Nichts gefunden. Probier einen anderen Suchbegriff.'));
@@ -1619,13 +1644,13 @@ function autodexPicker(s){
     showResult();
   };
   const search = q => {
-    const words = q.toLowerCase().split(/\s+/).filter(Boolean);
-    const hits = words.length ? ENTRIES.filter(e => {
-      const hay = (entryName(e) + ' ' + (e.isKit ? baseName(e) : '')).toLowerCase();
-      return words.every(w => hay.includes(w));
-    }).slice(0, 8) : [];
-    list.replaceChildren(...hits.map(e => h('button', {class:'chip', type:'button', onclick: () => choose(e)},
-      entryName(e) + (e.isKit ? ' (' + baseName(e) + ')' : ''))));
+    const hits = searchEntries(q, 8);
+    list.replaceChildren(...hits.map(e => h('button', {class:'pickrow', type:'button', onclick: () => choose(e)},
+      h('span', {class:'pickimg'}, pictureNode(e)),
+      h('span', {class:'picktxt'},
+        h('b', {}, entryName(e)),
+        h('small', {}, [e.isKit ? 'Basis ' + baseName(e) : null, quickVals(e)].filter(Boolean).join(' · '))))));
+    if (q.trim() && !hits.length) list.append(h('p', {class:'hint'}, 'Nicht im Autodex. Trag Marke und Modell unten selbst ein.'));
   };
   return h('div', {class:'field'},
     h('label', {for:'edPick'}, 'Aus dem Autodex wählen'),
