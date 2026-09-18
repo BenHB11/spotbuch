@@ -1,0 +1,1740 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#e8501a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Spotbuch">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}</style><title>Spotbuch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#e9ebee; --surface:#ffffff; --surface-2:#f4f5f7; --ink:#121418; --muted:#5b616c; --line:#d3d7de;
+  --accent:#e8501a; --accent-ink:#ffffff; --eu:#1f3fa6; --plate:#fbfbf6; --plate-ink:#111;
+  --ok:#1f8a4c; --warn:#b7791f; --bad:#c2372b;
+  --r1:#8a929e; --r2:#2f9e5b; --r3:#2f6fd6; --r4:#8b3fd1; --r5:#d99a06;
+  --shadow:0 1px 2px rgba(18,20,24,.06),0 6px 18px rgba(18,20,24,.08);
+  --display:"Barlow Condensed","Arial Narrow","Roboto Condensed",sans-serif;
+  --body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0f1114; --surface:#181b20; --surface-2:#20242a; --ink:#eef0f3; --muted:#9aa1ac; --line:#2b3038;
+    --accent:#ff6530; --accent-ink:#140a05; --eu:#3657c4; --plate:#eceee6; --plate-ink:#111;
+    --ok:#4cc27d; --warn:#e0a84a; --bad:#ef6b5e;
+    --r1:#8d95a1; --r2:#46c07a; --r3:#5b93f0; --r4:#b27af0; --r5:#f2bd2c;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 22px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0f1114; --surface:#181b20; --surface-2:#20242a; --ink:#eef0f3; --muted:#9aa1ac; --line:#2b3038;
+  --accent:#ff6530; --accent-ink:#140a05; --eu:#3657c4; --plate:#eceee6; --plate-ink:#111;
+  --ok:#4cc27d; --warn:#e0a84a; --bad:#ef6b5e;
+  --r1:#8d95a1; --r2:#46c07a; --r3:#5b93f0; --r4:#b27af0; --r5:#f2bd2c;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 22px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--ground)}
+body{color:var(--ink);font:16px/1.45 var(--body);padding-inline:16px;padding-block:0 120px;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:1040px;margin:0 auto}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+img{max-width:100%;display:block}
+
+/* header */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:18px 10px}
+.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.brand h1{font:800 34px/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0}
+.brand h1 b{color:var(--accent)}
+.brand span{font:600 13px/1 var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.me{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);min-width:0}
+.me img{width:30px;height:30px;border-radius:50%;flex:none}
+.me span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px}
+
+/* duel scoreboard */
+.duel{display:grid;grid-template-columns:1fr auto 1fr;align-items:stretch;background:var(--surface);border-radius:14px;box-shadow:var(--shadow);margin-block:6px 16px;overflow:hidden}
+.player{display:flex;flex-direction:column;gap:2px;padding:12px 14px;min-width:0}
+.player:last-child{text-align:right;align-items:flex-end}
+.player .who{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;min-width:0}
+.player:last-child .who{flex-direction:row-reverse}
+.player .who img{width:24px;height:24px;border-radius:50%;flex:none}
+.player .who span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.player .pts{font:800 38px/1 var(--display);font-variant-numeric:tabular-nums}
+.player .sub{font-size:12px;color:var(--muted)}
+.player.lead .pts{color:var(--accent)}
+.player.empty .pts{color:var(--line)}
+.vs{display:grid;place-items:center;padding:0 6px;font:800 16px/1 var(--display);color:var(--muted);background:var(--surface-2);letter-spacing:.08em}
+
+/* filters */
+.filters{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-size:14px;font-weight:600}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--ground);border-color:var(--ink)}
+
+/* feed */
+.feed{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+@media (max-width:420px){.feed{grid-template-columns:1fr}}
+.card{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;text-align:left;border:0;padding:0}
+.card .ph{position:relative;aspect-ratio:16/9;background:#23272d;max-width:100%}
+.sprite{width:100%;aspect-ratio:16/9;max-width:100%;background-size:400% 500%;background-repeat:no-repeat;background-color:#23272d}
+.pic169{aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:#23272d;max-width:100%}
+.credit{margin-top:-8px}
+.card .ph img{width:100%;height:100%;object-fit:cover}
+.card .ph .sample-art{width:100%;height:100%}
+.badges{position:absolute;inset:10px 10px auto 10px;display:flex;justify-content:space-between;gap:8px;pointer-events:none}
+.badge{font:700 12px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;padding:6px 8px;border-radius:6px;background:rgba(10,12,15,.72);color:#fff;backdrop-filter:blur(6px)}
+.badge.tuned{background:var(--accent);color:var(--accent-ink)}
+.badge.example{background:#fff;color:#111}
+.card .body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:10px}
+
+/* EU plate — the car's name */
+.plate{display:inline-flex;align-items:stretch;border:2px solid #111;border-radius:6px;background:var(--plate);color:var(--plate-ink);overflow:hidden;max-width:100%;align-self:flex-start}
+.plate .eu{background:var(--eu);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:3px 4px;font:700 10px/1 var(--display);min-width:18px}
+.plate .eu i{font-style:normal;font-size:8px;color:#ffd200;letter-spacing:-1px;margin-bottom:auto}
+.plate .txt{padding:4px 10px 3px;font:700 21px/1.05 var(--display);text-transform:uppercase;letter-spacing:.04em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.variant{font-size:14px;color:var(--muted);margin-top:-4px}
+
+.specs{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.spec{padding:8px 0;display:flex;flex-direction:column;gap:1px}
+.spec+.spec{border-left:1px solid var(--line);padding-left:10px}
+.spec b{font:700 22px/1 var(--display);font-variant-numeric:tabular-nums;white-space:nowrap}
+.spec b small{font-size:13px;font-weight:600;color:var(--muted);margin-left:2px}
+.spec em{font:600 11px/1.2 var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-style:normal}
+.spec b.up{color:var(--accent)}
+.meta{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);min-width:0}
+.meta img{width:20px;height:20px;border-radius:50%;flex:none}
+.meta span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.rar{display:inline-flex;align-items:center;gap:5px}
+.rar .dots{display:inline-flex;gap:2px}
+.rar .dots i{width:7px;height:7px;border-radius:2px;background:rgba(255,255,255,.3)}
+.rar .dots i.on{background:var(--rc)}
+
+.empty-note{grid-column:1/-1;background:var(--surface);border:1.5px dashed var(--line);border-radius:14px;padding:16px;color:var(--muted);font-size:15px}
+.empty-note strong{color:var(--ink)}
+
+/* FAB */
+.fab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:10px;background:var(--accent);color:var(--accent-ink);border:0;border-radius:999px;padding:14px 26px 14px 20px;font:800 20px/1 var(--display);letter-spacing:.06em;text-transform:uppercase;box-shadow:0 8px 24px rgba(232,80,26,.4);z-index:20}
+.fab svg{width:24px;height:24px}
+
+/* sheets */
+.sheet{position:fixed;inset:0;z-index:50;background:var(--ground);overflow-y:auto;padding-inline:16px;padding-block:calc(env(safe-area-inset-top,0px) + 8px) calc(env(safe-area-inset-bottom,0px) + 32px)}
+.sheet-in{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.sheet-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;background:var(--ground);padding-block:8px;z-index:2}
+.sheet-bar h2{font:800 26px/1 var(--display);text-transform:uppercase;margin:0;letter-spacing:.02em}
+.icon-btn{border:1px solid var(--line);background:var(--surface);border-radius:999px;width:40px;height:40px;display:grid;place-items:center;flex:none}
+.icon-btn svg{width:20px;height:20px}
+
+.shots{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.shot{position:relative;aspect-ratio:4/3;border-radius:12px;overflow:hidden;background:var(--surface-2);max-width:100%}
+.shot img{width:100%;height:100%;object-fit:cover}
+.shot .x{position:absolute;top:6px;right:6px;width:30px;height:30px;border-radius:50%;border:0;background:rgba(0,0,0,.65);color:#fff;display:grid;place-items:center;font-size:18px;line-height:1}
+.shot.slot{border:1.5px dashed var(--line);background:transparent;display:grid;place-items:center;text-align:center;color:var(--muted);font:600 14px/1.3 var(--display);letter-spacing:.08em;text-transform:uppercase;padding:8px}
+.pick{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:12px;padding:13px 16px;font:700 17px/1 var(--display);letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line);background:var(--surface)}
+.btn svg{width:20px;height:20px;flex:none}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.dark{background:var(--ink);border-color:var(--ink);color:var(--ground)}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--bad);background:transparent}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.block{width:100%}
+.hint{font-size:14px;color:var(--muted);margin:0}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font:700 12px/1 var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.field input,.field textarea{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 12px;width:100%}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.msg{border-radius:10px;padding:10px 12px;font-size:14px;background:var(--surface);border:1px solid var(--line)}
+.msg.err{border-color:var(--bad);color:var(--bad)}
+
+/* scanning */
+.scan{position:relative;border-radius:14px;overflow:hidden;aspect-ratio:4/3;background:#000;max-width:100%}
+.scan img{width:100%;height:100%;object-fit:cover;opacity:.75}
+.scan .beam{position:absolute;left:0;right:0;height:3px;background:var(--accent);box-shadow:0 0 18px 6px rgba(255,101,48,.55);top:0;animation:sweep 2.2s ease-in-out infinite alternate}
+.scan .corners{position:absolute;inset:14px;border:2px solid rgba(255,255,255,.0);background:
+  linear-gradient(#fff,#fff) top left/26px 3px no-repeat,linear-gradient(#fff,#fff) top left/3px 26px no-repeat,
+  linear-gradient(#fff,#fff) top right/26px 3px no-repeat,linear-gradient(#fff,#fff) top right/3px 26px no-repeat,
+  linear-gradient(#fff,#fff) bottom left/26px 3px no-repeat,linear-gradient(#fff,#fff) bottom left/3px 26px no-repeat,
+  linear-gradient(#fff,#fff) bottom right/26px 3px no-repeat,linear-gradient(#fff,#fff) bottom right/3px 26px no-repeat}
+.scan .status{position:absolute;left:12px;right:12px;bottom:12px;color:#fff;font:700 16px/1.2 var(--display);letter-spacing:.08em;text-transform:uppercase;text-shadow:0 1px 4px rgba(0,0,0,.6)}
+@keyframes sweep{to{top:calc(100% - 3px)}}
+@media (prefers-reduced-motion:reduce){.scan .beam{animation:none;top:50%}}
+
+/* detail */
+.gallery{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;border-radius:14px}
+.gallery img{flex:0 0 100%;width:100%;aspect-ratio:4/3;object-fit:cover;scroll-snap-align:start;border-radius:14px;max-width:100%}
+.block-h{font:700 13px/1 var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:4px 0 -4px}
+.table{background:var(--surface);border-radius:12px;overflow:hidden}
+.table div{display:flex;justify-content:space-between;gap:12px;padding:10px 14px;font-size:15px}
+.table div+div{border-top:1px solid var(--line)}
+.table dt{color:var(--muted)}
+.table dd{margin:0;font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+.table dd .was{color:var(--muted);font-weight:500;text-decoration:line-through;margin-right:6px}
+.table dd .now{color:var(--accent)}
+.mods{display:flex;flex-direction:column;gap:8px}
+.mod{background:var(--surface);border-radius:12px;padding:10px 14px;display:flex;gap:12px;align-items:flex-start}
+.mod .dot{width:10px;height:10px;border-radius:3px;margin-top:6px;flex:none;background:var(--accent)}
+.mod.werk .dot{background:var(--eu)}
+.mod b{display:block;font-weight:600}
+.mod small{color:var(--muted);font-size:13px}
+.tag{font:700 11px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--line);border-radius:4px;padding:3px 5px;margin-left:6px;color:var(--muted);vertical-align:2px}
+.fact{background:var(--surface);border-radius:12px;padding:12px 14px;font-size:15px}
+.fact b{font:700 12px/1 var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:4px}
+.fine{font-size:12px;color:var(--muted)}
+.edit-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:360px){.edit-row,.row2{grid-template-columns:1fr}}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(90px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--ground);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;z-index:80;max-width:calc(100% - 32px)}
+.sample-art,.art{width:100%;height:100%;display:block}
+
+/* tabs */
+.tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--surface);border-radius:12px;padding:4px;gap:4px;margin-block:4px 14px;box-shadow:var(--shadow)}
+.tab{border:0;background:transparent;border-radius:9px;padding:10px;font:800 17px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--ground)}
+
+/* tuner badge + detection box */
+.badge.tuner{background:var(--accent);color:var(--accent-ink)}
+.tunerbox{background:var(--ink);color:var(--ground);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:4px;position:relative;overflow:hidden}
+.tunerbox small{font:700 12px/1 var(--display);letter-spacing:.14em;text-transform:uppercase;opacity:.7}
+.tunerbox strong{font:800 44px/0.95 var(--display);text-transform:uppercase;letter-spacing:.02em;color:var(--accent);overflow-wrap:anywhere}
+.tunerbox span{font:700 22px/1.1 var(--display);text-transform:uppercase}
+.tunerbox em{font-style:normal;font-size:14px;opacity:.8}
+.tunerbox.none strong{font-size:26px;color:var(--ground)}
+.cues{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:15px}
+
+/* autodex */
+.dex-head{display:flex;flex-direction:column;gap:12px;margin-bottom:14px}
+.dex-progress{display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--muted)}
+.dex-progress b{font:800 22px/1 var(--display);color:var(--ink)}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent);border-radius:99px}
+.dex-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:14px}
+.dex{background:var(--surface);border:0;padding:0;border-radius:12px;overflow:hidden;text-align:left;display:flex;flex-direction:column;box-shadow:var(--shadow)}
+.dex .pic{position:relative;aspect-ratio:16/9;background:#22262c;max-width:100%}
+.dex .pic img{width:100%;height:100%;object-fit:cover}
+.dex .pic .badges{inset:6px 6px auto 6px}
+.dex .pic .badge{font-size:10px;padding:4px 6px}
+.dex .t{padding:8px 10px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.dex .t small{font:700 11px/1.1 var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.dex .t b{font:700 18px/1.1 var(--display);overflow-wrap:anywhere}
+.dex .t span{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.dex.seen .t b{color:var(--ink)}
+.minispots{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.minispots button{border:0;padding:0;background:var(--surface);border-radius:10px;overflow:hidden;text-align:left;font-size:12px;color:var(--muted)}
+.minispots img{aspect-ratio:4/3;object-fit:cover;width:100%}
+.minispots span{display:block;padding:6px 8px}
+.pick > [hidden] + .btn{grid-column:1/-1}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><h1>Spot<b>buch</b></h1><span>Carspotting zu zweit</span></div>
+    <div class="me" id="me" hidden><img id="meAvatar" alt=""><span id="meName"></span></div>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Ansicht">
+    <button class="tab" id="tabSpots" type="button" role="tab" aria-selected="true" aria-controls="viewSpots">Spots</button>
+    <button class="tab" id="tabDex" type="button" role="tab" aria-selected="false" aria-controls="viewDex">Autodex</button>
+  </div>
+
+  <section id="viewSpots" role="tabpanel" aria-labelledby="tabSpots">
+    <section class="duel" id="duel" aria-label="Punktestand"></section>
+    <nav class="filters" id="filters" aria-label="Filter"></nav>
+    <main class="feed" id="feed" aria-live="polite"></main>
+  </section>
+
+  <section id="viewDex" role="tabpanel" aria-labelledby="tabDex" hidden>
+    <div class="dex-head">
+      <div class="dex-progress"><div><b id="dexCount">0</b> von <span id="dexTotal">0</span> gespottet</div><div class="bar"><i id="dexBar"></i></div></div>
+      <div class="field"><label for="dexSearch" class="sr">Suchen</label><input id="dexSearch" type="search" placeholder="Suchen: Mansory, Urus, M3, Ferrari …" autocomplete="off"></div>
+      <nav class="filters" id="dexFilters" aria-label="Autodex-Filter"></nav>
+    </div>
+    <div class="dex-grid" id="dexGrid"></div>
+    <button class="btn block" id="dexMore" type="button" hidden>Mehr anzeigen</button>
+    <button class="btn ghost block" id="dexCredits" type="button">Bildnachweise</button>
+  </section>
+</div>
+
+<button class="fab" id="fab" type="button" hidden>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+  Spotten
+</button>
+
+<input type="file" id="camInput" accept="image/*" capture="environment" class="sr" tabindex="-1" aria-hidden="true">
+<input type="file" id="galInput" accept="image/*" multiple class="sr" tabindex="-1" aria-hidden="true">
+
+<!-- New spot -->
+<section class="sheet" id="newSheet" hidden role="dialog" aria-modal="true" aria-labelledby="newTitle">
+  <div class="sheet-in">
+    <div class="sheet-bar">
+      <h2 id="newTitle">Neuer Spot</h2>
+      <button class="icon-btn" id="newClose" type="button" aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+
+    <div id="stepPhotos" class="sheet-in">
+      <div class="shots" id="shots"></div>
+      <div class="pick">
+        <button class="btn dark" id="btnCam" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Kamera</button>
+        <button class="btn" id="btnGal" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.6"/></svg>Galerie</button>
+      </div>
+      <p class="hint" id="shotHint">Tipp: Front, Heck und Seite fotografieren. Je mehr vom Auto zu sehen ist, desto mehr Tuning-Teile erkennt der Scan.</p>
+      <div class="row2">
+        <div class="field"><label for="inPlace">Wo gespottet?</label><input id="inPlace" type="text" maxlength="60" placeholder="z. B. Tankstelle Ringstraße" autocomplete="off"></div>
+        <div class="field"><label for="inNote">Notiz</label><input id="inNote" type="text" maxlength="120" placeholder="optional" autocomplete="off"></div>
+      </div>
+      <div class="msg err" id="photoErr" hidden></div>
+      <button class="btn primary block" id="btnScan" type="button" disabled>Fahrzeug scannen</button>
+      <button class="btn ghost block" id="btnManual" type="button" hidden>Ohne Scan speichern</button>
+    </div>
+
+    <div id="stepScan" class="sheet-in" hidden>
+      <div class="scan"><img id="scanImg" alt=""><div class="corners"></div><div class="beam"></div><div class="status" id="scanStatus">Fahrzeug wird gescannt …</div></div>
+      <p class="hint">Der Scan schaut sich das ganze Auto an: Modell, Motorisierung, Anbauteile, Felgen, Fahrwerk, Auspuff. Das dauert meist 20 bis 60 Sekunden.</p>
+      <button class="btn block" id="btnStop" type="button">Abbrechen</button>
+    </div>
+
+    <div id="stepResult" class="sheet-in" hidden>
+      <div id="resultView" class="sheet-in"></div>
+      <div class="msg err" id="saveErr" hidden></div>
+      <div class="pick">
+        <button class="btn" id="btnRescan" type="button">Neu scannen</button>
+        <button class="btn primary" id="btnSave" type="button">Spot speichern</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Detail -->
+<section class="sheet" id="detailSheet" hidden role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+  <div class="sheet-in">
+    <div class="sheet-bar">
+      <h2 id="detailTitle">Spot</h2>
+      <button class="icon-btn" id="detailClose" type="button" aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div id="detailBody" class="sheet-in"></div>
+  </div>
+</section>
+
+<div class="toast" id="toast" hidden role="status"></div>
+
+
+
+<script src="config.js"></script>
+<script src="shim.js"></script>
+<script>
+(() => {
+const $ = s => document.querySelector(s);
+// replaceChildren with nested lists and empty slots (null/false) allowed
+const fill = (el, ...kids) => el.replaceChildren(...kids.flat(Infinity).filter(k => k != null && k !== false));
+function h(tag, attrs, ...kids){
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})){
+    if (v == null || v === false) continue;
+    if (k === 'class') el.className = v;
+    else if (k === 'style') el.style.cssText = v;
+    else if (k === 'html') el.innerHTML = v;
+    else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v === true ? '' : v);
+  }
+  for (const c of kids.flat()){ if (c == null || c === false) continue; el.append(c.nodeType ? c : String(c)); }
+  return el;
+}
+const num = v => { const n = typeof v === 'number' ? v : parseFloat(String(v ?? '').replace(',', '.')); return Number.isFinite(n) && n > 0 ? n : null; };
+const str = (v, max = 80) => (typeof v === 'string' ? v.trim().slice(0, max) : v == null ? '' : String(v).slice(0, max));
+const clamp = (n, a, b) => Math.min(b, Math.max(a, n));
+const deNum = n => Math.round(n).toLocaleString('de-DE');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;'}[c]));
+
+function ago(t){
+  const d = (Date.now() - t) / 1000, rtf = new Intl.RelativeTimeFormat('de', {numeric:'auto'});
+  if (d < 60) return 'gerade eben';
+  if (d < 3600) return rtf.format(-Math.round(d / 60), 'minute');
+  if (d < 86400) return rtf.format(-Math.round(d / 3600), 'hour');
+  if (d < 604800) return rtf.format(-Math.round(d / 86400), 'day');
+  return new Date(t).toLocaleDateString('de-DE');
+}
+function moneyShort(n){
+  n = num(n); if (!n) return null;
+  if (n >= 1e6) return [(n / 1e6).toLocaleString('de-DE', {maximumFractionDigits:1}), 'Mio €'];
+  if (n >= 1e3) return [Math.round(n / 1e3), 'k €'];
+  return [deNum(n), '€'];
+}
+const money = n => num(n) ? 'ca. ' + deNum(n) + ' €' : null;
+function toast(msg){
+  const t = $('#toast'); t.textContent = msg; t.hidden = false;
+  clearTimeout(toast._t); toast._t = setTimeout(() => { t.hidden = true; }, 3000);
+}
+function hash(s){ let x = 2166136261; for (const ch of s) x = Math.imul(x ^ ch.charCodeAt(0), 16777619); return x >>> 0; }
+
+/* ---------- car illustrations: one side profile per body style ---------- */
+// pts: roof/beltline outline from rear bottom to front bottom; win: side glass; w: wheel x; r: wheel radius
+const SHAPES = {
+  m: {pts:[[28,170],[30,142],[44,128],[120,110],[176,94],[214,90],[262,108],[330,128],[372,146],[376,170]], win:[[168,99],[212,94],[252,110],[180,114]], w:[100,302], r:29, wing:[52,128], hl:[362,147], tl:[34,140]},
+  y: {pts:[[26,170],[28,138],[60,124],[140,108],[188,90],[222,88],[268,108],[336,130],[374,150],[378,170]], win:[[180,96],[220,93],[258,110],[192,114]], w:[102,306], r:30, wing:[48,124], hl:[364,150], tl:[32,138]},
+  c: {pts:[[26,170],[28,136],[48,124],[120,110],[170,86],[236,84],[276,108],[346,118],[374,134],[376,170]], win:[[178,90],[232,88],[264,108],[168,110]], w:[92,304], r:28, wing:[44,122], hl:[364,132], tl:[32,134]},
+  g: {pts:[[24,170],[26,136],[50,124],[130,112],[172,90],[226,88],[262,110],[350,116],[376,132],[378,170]], win:[[180,94],[222,92],[252,110],[170,112]], w:[90,318], r:28, wing:[46,122], hl:[366,130], tl:[30,134]},
+  l: {pts:[[22,170],[24,132],[40,120],[96,114],[140,84],[244,82],[288,110],[356,116],[378,130],[378,170]], win:[[146,88],[240,86],[276,110],[136,112]], w:[88,314], r:27, wing:[36,118], hl:[368,128], tl:[28,128]},
+  k: {pts:[[22,170],[22,108],[34,88],[60,82],[244,80],[288,110],[356,116],[378,130],[378,170]], win:[[40,92],[240,86],[276,110],[36,112]], w:[88,314], r:27, wing:null, hl:[368,128], tl:[26,120]},
+  h: {pts:[[30,170],[30,112],[40,90],[64,82],[206,80],[262,110],[348,118],[372,132],[372,170]], win:[[46,90],[202,86],[250,110],[38,112]], w:[90,302], r:27, wing:null, hl:[360,130], tl:[34,118]},
+  s: {pts:[[22,170],[22,100],[32,74],[56,66],[236,64],[286,96],[360,104],[380,120],[380,170]], win:[[40,76],[232,72],[274,98],[34,100]], w:[92,316], r:31, wing:null, hl:[370,116], tl:[26,108]},
+  r: {pts:[[26,170],[28,136],[48,124],[150,118],[222,116],[236,94],[244,94],[262,116],[346,120],[374,136],[376,170]], win:[[232,98],[240,98],[254,116],[246,116]], w:[92,304], r:28, wing:[44,122], hl:[364,134], tl:[32,134]},
+  v: {pts:[[22,170],[22,60],[32,46],[290,44],[340,92],[370,104],[380,122],[380,170]], win:[[40,56],[296,56],[330,94],[40,94]], w:[80,320], r:28, wing:null, hl:[372,118], tl:[26,110]},
+  p: {pts:[[20,170],[20,112],[166,112],[170,80],[184,68],[262,66],[300,100],[362,106],[380,122],[380,170]], win:[[186,74],[258,72],[290,100],[180,100]], w:[80,316], r:31, wing:null, hl:[370,118], tl:[24,120]},
+  o: {pts:[[30,170],[32,140],[60,128],[120,120],[160,94],[232,92],[270,118],[340,122],[370,136],[372,170]], win:[[168,98],[228,96],[258,118],[158,118]], w:[96,300], r:26, wing:[52,126], hl:[360,134], tl:[36,136]},
+};
+const BODY_LABEL = {h:'Kompakt', l:'Limousine', k:'Kombi', c:'Coupé', r:'Cabrio / Roadster', s:'SUV', m:'Supersportwagen', y:'Hypercar', g:'Gran Turismo', v:'Van', p:'Pick-up', o:'Klassiker'};
+const PAINT_DAILY = ['#e8eaed', '#16181b', '#a7adb5', '#5c636c', '#1d4f9c', '#9e1b22', '#2f3a4a', '#c9ccd1'];
+const PAINT_SPORT = ['#c4161c', '#f2b705', '#e8641c', '#1f7a4d', '#1f56c4', '#16181b', '#e8eaed', '#7c8691', '#5a2a86'];
+
+function smooth(pts){
+  const n = pts.length, mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+  const s = mid(pts[n - 1], pts[0]); let d = `M${s[0]} ${s[1]}`;
+  for (let i = 0; i < n; i++){ const p = pts[i], q = mid(p, pts[(i + 1) % n]); d += `Q${p[0]} ${p[1]} ${q[0]} ${q[1]}`; }
+  return d + 'Z';
+}
+function wheel(x, r, rim){
+  return `<circle cx="${x}" cy="172" r="${r + 5}" fill="#0b0c0e"/>
+    <circle cx="${x}" cy="172" r="${r}" fill="#131416"/>
+    <circle cx="${x}" cy="172" r="${r * .64}" fill="${rim}"/>
+    <circle cx="${x}" cy="172" r="${r * .42}" fill="none" stroke="#000" stroke-opacity=".45" stroke-width="${r * .3}" stroke-dasharray="3 6"/>
+    <circle cx="${x}" cy="172" r="${r * .14}" fill="#2a2d31"/>`;
+}
+// e: catalog entry ({id, body, rar, isKit, tuner, marke}); returns an SVG string
+function carSVG(e){
+  const sh = SHAPES[e.body] || SHAPES.l, t = e.isKit ? TUNERS[e.tuner] : null;
+  const pal = (e.rar >= 3 || 'myc'.includes(e.body)) ? PAINT_SPORT : PAINT_DAILY;
+  const paint = t ? t.color : pal[hash(e.id) % pal.length];
+  const mark = (e.isKit ? e.tuner : e.marke).toUpperCase();
+  const fit = mark.length > 8 ? ' textLength="360" lengthAdjust="spacingAndGlyphs"' : '';
+  const [w0, w1] = sh.w, r = sh.r, rim = t ? t.rim : '#a9aeb5';
+  let extra = '';
+  if (t){
+    extra += `<rect x="${w0 + r + 6}" y="158" width="${w1 - w0 - 2 * r - 12}" height="12" rx="3" fill="#0d0e10"/>
+      <rect x="${w0 + r + 6}" y="157" width="${w1 - w0 - 2 * r - 12}" height="2" fill="${t.accent}"/>`;
+    if (sh.wing && (t.wing || 'my'.includes(e.body))){ const [x, y] = sh.wing;
+      extra += `<path d="M${x + 6} ${y} v-16 M${x + 30} ${y - 2} v-16" stroke="#0d0e10" stroke-width="4"/>
+        <rect x="${x - 10}" y="${y - 24}" width="62" height="8" rx="2" fill="#0d0e10"/>`; }
+  }
+  return `<svg class="art" viewBox="0 0 400 225" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <rect width="400" height="225" fill="#23272d"/><rect y="194" width="400" height="31" fill="#1a1d21"/>
+    <text x="200" y="104" text-anchor="middle" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-weight="800" font-size="76" fill="#fff" fill-opacity=".07"${fit}>${esc(mark)}</text>
+    <ellipse cx="200" cy="200" rx="178" ry="8" fill="#000" fill-opacity=".55"/>
+    <path d="${smooth(sh.pts)}" fill="${paint}"/>
+    <path d="${smooth(sh.pts)}" fill="#fff" fill-opacity=".06" transform="translate(0 -3) scale(1 .985)"/>
+    <rect x="${w0}" y="160" width="${w1 - w0}" height="10" fill="#000" fill-opacity=".2"/>
+    <path d="${smooth(sh.win)}" fill="#0f1216" fill-opacity=".92"/>
+    <path d="M${sh.hl[0] - 16} ${sh.hl[1] - 2} L${sh.hl[0] + 4} ${sh.hl[1]}" stroke="#fff3c4" stroke-width="5" stroke-linecap="round"/>
+    <path d="M${sh.tl[0]} ${sh.tl[1]} l12 1" stroke="#e3242b" stroke-width="5" stroke-linecap="round"/>
+    ${extra}${wheel(w0, r, rim)}${wheel(w1, r, rim)}
+  </svg>`;
+}
+
+/* ---------- catalog: id|Modell|Karosserie|PS|Vmax|Preis ca. (neu, bei Klassikern Marktwert)|Seltenheit 1-5 ---------- */
+const CARS = [], KITS = [], ENTRY = {}, TUNERS = {};
+function addCars(marke, slug, text){
+  for (const ln of text.trim().split('\n')){
+    const [id, modell, body, ps, vmax, preis, rar] = ln.trim().split('|');
+    const e = {id: slug + '-' + id, marke, modell, body, ps: +ps || null, vmax: +vmax || null, preis: +preis || null, rar: +rar || 1, isKit: false};
+    CARS.push(e); ENTRY[e.id] = e;
+  }
+}
+addCars('Audi', 'audi', `
+a1|A1 Sportback|h|116|203|26000|1
+a3|A3 Sportback|h|150|224|36000|1
+s3|S3 Sportback|h|333|250|56000|2
+rs3|RS 3 Sportback|h|400|250|70000|3
+a4|A4 Avant|k|204|241|50000|1
+s4|S4 Avant|k|341|250|70000|2
+rs4|RS 4 Avant|k|450|250|92000|3
+a5|A5 Coupé|c|265|250|55000|1
+rs5|RS 5 Coupé|c|450|250|92000|3
+a6|A6 Avant|k|204|240|62000|1
+rs6|RS 6 Avant (C8)|k|600|250|128000|3
+rs6p|RS 6 Avant performance|k|630|280|138000|3
+a7|A7 Sportback|l|340|250|82000|2
+rs7|RS 7 Sportback|l|600|250|132000|3
+a8|A8|l|340|250|105000|2
+s8|S8|l|571|250|150000|3
+q2|Q2|s|150|210|32000|1
+q3|Q3|s|150|207|40000|1
+rsq3|RS Q3|s|400|250|75000|2
+q5|Q5|s|204|222|56000|1
+sq5|SQ5|s|367|250|76000|2
+q7|Q7|s|286|241|85000|1
+sq7|SQ7|s|507|250|115000|2
+q8|Q8|s|340|250|92000|2
+rsq8|RS Q8 performance|s|640|305|150000|3
+etron|e-tron GT|l|530|245|105000|3
+rsetron|RS e-tron GT performance|l|925|250|170000|4
+ttrs|TT RS|c|400|280|75000|3
+r8|R8 V10 performance|m|620|331|200000|4
+r8gt|R8 GT|m|620|320|225000|5
+sq|Sport quattro (1984)|o|306|250|400000|5`);
+addCars('BMW', 'bmw', `
+1er|1er|h|136|213|33000|1
+m135|M135 xDrive|h|300|250|56000|2
+m2|M2 (G87)|c|480|250|78000|3
+3er|3er Limousine|l|184|235|49000|1
+m340|M340i xDrive|l|374|250|72000|2
+m3|M3 Competition (G80)|l|530|250|98000|3
+m3t|M3 Competition Touring|k|530|280|108000|3
+m3cs|M3 CS|l|550|302|145000|4
+4er|4er Coupé|c|184|240|52000|1
+m4|M4 Competition (G82)|c|530|250|100000|3
+m4f82|M4 (F82)|c|431|250|45000|3
+m4csl|M4 CSL|c|550|307|165000|4
+5er|5er Limousine|l|208|240|62000|1
+m5f90|M5 Competition (F90)|l|625|305|140000|3
+m5|M5 (G90)|l|727|305|148000|3
+m5t|M5 Touring (G99)|k|727|305|150000|4
+m5cs|M5 CS|l|635|305|185000|4
+7er|7er|l|381|250|115000|2
+i7|i7 M70|l|660|250|185000|3
+m8|M8 Competition Coupé|c|625|305|170000|3
+m850|M850i Gran Coupé|l|530|250|125000|2
+x1|X1|s|136|214|44000|1
+x3|X3|s|208|215|58000|1
+x3m|X3 M Competition|s|510|285|102000|3
+x5|X5|s|298|243|85000|1
+x5m|X5 M Competition|s|625|290|155000|3
+x6m|X6 M Competition|s|625|290|160000|3
+x7|X7|s|381|250|110000|2
+xm|XM|s|653|270|180000|3
+xml|XM Label|s|748|290|200000|4
+z4|Z4 M40i|r|340|250|72000|2
+i4|i4 M50|l|544|225|72000|2
+ix|iX M60|s|619|250|135000|3
+i8|i8|m|374|250|145000|3
+1m|1er M Coupé (E82)|c|340|250|65000|4
+e30|M3 (E30)|o|238|241|110000|5
+e46|M3 (E46)|c|343|250|40000|3
+e46csl|M3 CSL (E46)|c|360|250|150000|5
+m5e60|M5 V10 (E60)|l|507|250|35000|3
+z8|Z8|r|400|250|250000|5
+m1|M1 (E26)|o|277|262|700000|5`);
+addCars('Alpina', 'alpina', `
+b3|B3 Touring|k|495|303|92000|3
+b5|B5 GT Touring|k|634|322|150000|4
+xb7|XB7|s|631|290|170000|4
+b8|B8 Gran Coupé|l|621|324|160000|4`);
+addCars('Mercedes', 'mb', `
+a|A-Klasse|h|136|215|36000|1
+a45|AMG A 45 S|h|421|270|78000|3
+cla45|AMG CLA 45 S|l|421|270|80000|3
+c|C-Klasse|l|204|246|50000|1
+c63|AMG C 63 S E Performance|l|680|280|120000|3
+c63w205|AMG C 63 S (W205)|l|510|290|55000|3
+e|E-Klasse|l|204|240|62000|1
+e63|AMG E 63 S|l|612|300|130000|3
+s|S-Klasse|l|367|250|120000|2
+s63|AMG S 63 E Performance|l|802|290|210000|4
+maybach|Maybach S 680|l|612|250|260000|4
+cls|CLS|l|265|250|75000|2
+gla|GLA|s|163|210|42000|1
+glc|GLC|s|204|219|58000|1
+glc63|AMG GLC 63 S E Performance|s|680|275|125000|3
+gle|GLE|s|272|230|85000|1
+gle63|AMG GLE 63 S Coupé|s|612|280|165000|3
+gls|GLS|s|381|246|115000|2
+glsmay|Maybach GLS 600|s|558|250|200000|4
+g500|G 500|s|449|210|145000|3
+g63|AMG G 63|s|585|220|195000|3
+g4x4|AMG G 63 4x4²|s|585|210|280000|4
+g580|G 580 mit EQ-Technologie|s|587|180|145000|3
+gt4|AMG GT 63 S E Performance 4-Türer|l|843|316|195000|4
+gtc190|AMG GT (C190)|c|476|304|125000|3
+gtr|AMG GT R|c|585|318|170000|4
+gtbs|AMG GT Black Series|c|730|325|400000|5
+gt63|AMG GT 63 (C192)|c|585|315|190000|3
+sl63|AMG SL 63|r|585|315|195000|3
+one|AMG ONE|y|1063|352|2750000|5
+sls|SLS AMG|c|571|317|220000|4
+slr|SLR McLaren|c|626|334|500000|5
+eqs|EQS|l|360|210|110000|2
+eqs53|AMG EQS 53|l|658|220|160000|3
+v|V-Klasse|v|190|200|60000|1
+sprinter|Sprinter|v|170|160|50000|1
+evo2|190 E 2.5-16 Evolution II|o|235|250|250000|5
+300sl|300 SL Flügeltürer|o|215|250|1500000|5`);
+addCars('smart', 'smart', `
+fortwo|fortwo|h|82|130|22000|1
+brabus1|#1 BRABUS|s|428|180|48000|2`);
+addCars('Porsche', 'porsche', `
+cayman|718 Cayman|m|300|275|68000|2
+caymangts|718 Cayman GTS 4.0|m|400|293|100000|3
+gt4rs|718 Cayman GT4 RS|m|500|315|160000|4
+spyderrs|718 Spyder RS|r|500|308|160000|4
+boxster|718 Boxster|r|300|275|70000|2
+carrera|911 Carrera (992)|c|394|294|125000|3
+carreras|911 Carrera S|c|480|308|145000|3
+gts|911 Carrera GTS T-Hybrid|c|541|312|175000|3
+targa|911 Targa 4 GTS|r|541|312|180000|4
+turbos|911 Turbo S (992)|c|650|330|255000|4
+gt3|911 GT3 (992)|c|510|313|200000|4
+gt3rs|911 GT3 RS (992)|c|525|296|255000|4
+gt2rs|911 GT2 RS (991)|c|700|340|400000|5
+st|911 S/T|c|525|300|320000|5
+dakar|911 Dakar|c|480|240|230000|4
+sportclassic|911 Sport Classic|c|550|315|280000|5
+918|918 Spyder|y|887|345|1800000|5
+cgt|Carrera GT|y|612|330|1300000|5
+959|959|o|450|317|1800000|5
+964|911 (964/993) Klassiker|o|250|260|100000|4
+taycan|Taycan|l|408|230|105000|2
+taycants|Taycan Turbo S|l|952|260|210000|3
+taycangt|Taycan Turbo GT|l|1034|305|240000|4
+panamera|Panamera|l|353|272|112000|2
+panameratse|Panamera Turbo S E-Hybrid|l|782|325|230000|3
+macan|Macan Electric|s|408|220|85000|2
+macangts|Macan GTS|s|440|272|98000|2
+cayenne|Cayenne|s|353|248|95000|2
+cayennegt|Cayenne Turbo GT|s|659|305|200000|3
+cayenneteh|Cayenne Turbo E-Hybrid Coupé|s|739|295|195000|3`);
+addCars('RUF', 'ruf', `
+ctr|CTR Anniversary|y|710|360|800000|5
+scr|SCR|c|510|322|500000|5
+yellowbird|CTR Yellowbird|o|469|339|4000000|5`);
+addCars('VW', 'vw', `
+polo|Polo|h|95|187|22000|1
+pologti|Polo GTI|h|207|240|33000|1
+golf|Golf 8|h|150|224|33000|1
+gti|Golf GTI|h|265|250|46000|2
+gticlub|Golf GTI Clubsport|h|300|250|50000|2
+golfr|Golf R|h|333|270|60000|2
+golfrv|Golf R Variant|k|333|270|62000|2
+golf1|Golf 1 GTI|o|110|182|25000|3
+golf2|Golf 2 GTI 16V|o|139|208|18000|3
+r32|Golf R32 (Mk5)|h|250|250|20000|3
+scirocco|Scirocco R|c|265|250|22000|3
+arteon|Arteon R Shooting Brake|k|320|250|65000|2
+passat|Passat Variant|k|150|225|45000|1
+tiguan|Tiguan|s|150|207|40000|1
+troc|T-Roc R|s|300|250|52000|2
+touareg|Touareg R eHybrid|s|462|250|100000|2
+id3|ID.3|h|204|160|37000|1
+id4|ID.4|s|286|180|45000|1
+idbuzz|ID. Buzz|v|286|160|65000|2
+multivan|Multivan|v|218|200|60000|1
+california|California|v|150|190|70000|2
+amarok|Amarok|p|241|200|55000|1
+kaefer|Käfer|o|34|115|15000|3
+t1|Bulli T1|o|44|105|80000|4
+xl1|XL1|c|75|160|120000|5`);
+addCars('Opel', 'opel', `
+corsa|Corsa|h|100|190|22000|1
+astra|Astra|h|130|210|30000|1
+mokka|Mokka|s|130|200|28000|1
+grandland|Grandland|s|145|200|35000|1
+opc|Astra OPC|h|280|250|20000|2
+manta|Manta B|o|110|190|20000|3
+gt|GT (1968)|o|90|185|30000|4`);
+addCars('Cupra', 'cupra', `
+formentor|Formentor VZ|s|333|250|55000|2
+vz5|Formentor VZ5|s|390|250|65000|3
+leon|Leon VZ|h|300|250|48000|2
+born|Born|h|231|200|42000|1
+ateca|Ateca|s|300|247|55000|2
+tavascan|Tavascan VZ|s|340|180|56000|2`);
+addCars('Seat', 'seat', `
+ibiza|Ibiza|h|95|190|20000|1
+leon|Leon|h|150|221|30000|1`);
+addCars('Škoda', 'skoda', `
+fabia|Fabia|h|95|195|20000|1
+octavia|Octavia Combi|k|150|229|35000|1
+octaviars|Octavia RS|k|265|250|48000|1
+superb|Superb Combi|k|204|240|48000|1
+enyaq|Enyaq|s|286|180|48000|1
+kodiaq|Kodiaq|s|150|207|42000|1`);
+
+addCars('Ferrari', 'ferrari', `
+296|296 GTB|m|830|330|270000|4
+296gts|296 GTS|m|830|330|305000|4
+sf90|SF90 Stradale|y|1000|340|440000|5
+sf90xx|SF90 XX Stradale|y|1030|320|700000|5
+f80|F80|y|1200|350|3600000|5
+849|849 Testarossa|y|1050|330|450000|5
+f8|F8 Tributo|m|720|340|240000|4
+488|488 GTB|m|670|330|200000|4
+488p|488 Pista|m|720|340|420000|5
+458|458 Italia|m|570|325|200000|4
+458s|458 Speciale|m|605|325|450000|5
+f430|F430|m|490|315|120000|4
+360|360 Modena|m|400|295|85000|3
+f355|F355|o|380|295|130000|4
+roma|Roma|g|620|320|230000|4
+amalfi|Amalfi|g|640|320|240000|4
+portofino|Portofino M|g|620|320|230000|4
+812|812 Superfast|g|800|340|330000|5
+812c|812 Competizione|g|830|340|600000|5
+12cil|12Cilindri|g|830|340|400000|5
+puro|Purosangue|s|725|310|400000|5
+f12|F12berlinetta|g|740|340|200000|4
+f12tdf|F12tdf|g|780|340|800000|5
+599|599 GTB Fiorano|g|620|330|150000|4
+gtc4|GTC4Lusso|g|690|335|180000|4
+cali|California T|g|560|316|120000|3
+sp3|Daytona SP3|y|840|340|2200000|5
+laferrari|LaFerrari|y|963|350|4000000|5
+enzo|Enzo|y|660|350|4000000|5
+f50|F50|y|520|325|5000000|5
+f40|F40|o|478|324|3000000|5
+testarossa|Testarossa|o|390|290|150000|5`);
+addCars('Lamborghini', 'lambo', `
+huracan|Huracán EVO|m|640|325|215000|4
+tecnica|Huracán Tecnica|m|640|325|250000|4
+sto|Huracán STO|m|640|310|340000|5
+sterrato|Huracán Sterrato|m|610|260|290000|5
+performante|Huracán Performante|m|640|325|280000|5
+temerario|Temerario|m|920|343|300000|5
+revuelto|Revuelto|y|1015|350|510000|5
+svj|Aventador SVJ|y|770|350|600000|5
+aventadors|Aventador S|y|740|350|350000|5
+ultimae|Aventador Ultimae|y|780|355|550000|5
+urus|Urus S|s|666|305|245000|4
+urusp|Urus Performante|s|666|306|275000|4
+urusse|Urus SE|s|800|312|265000|4
+gallardo|Gallardo|m|560|325|100000|4
+murcielago|Murciélago LP 640|y|640|340|250000|5
+countach|Countach LPI 800-4|y|814|355|2500000|5
+countachc|Countach (Klassiker)|o|455|295|600000|5
+diablo|Diablo|o|492|325|350000|5
+miura|Miura|o|385|280|2500000|5
+sian|Sián|y|819|350|3000000|5`);
+addCars('Maserati', 'maserati', `
+mc20|MC20|m|630|325|245000|4
+gt|GranTurismo Trofeo|g|550|320|195000|3
+grecale|Grecale Trofeo|s|530|285|120000|2
+levante|Levante Trofeo|s|580|302|80000|3
+qp|Quattroporte|l|430|288|60000|2
+ghibli|Ghibli|l|350|267|40000|2`);
+addCars('Alfa Romeo', 'alfa', `
+giulia|Giulia Quadrifoglio|l|520|307|95000|3
+stelvio|Stelvio Quadrifoglio|s|520|285|100000|3
+gtam|Giulia GTAm|l|540|285|190000|5
+33|33 Stradale|m|620|333|2000000|5
+4c|4C|m|240|258|55000|3
+8c|8C Competizione|g|450|292|300000|5
+tonale|Tonale|s|160|210|40000|1
+junior|Junior Veloce|h|280|200|45000|2`);
+addCars('Fiat', 'fiat', `
+500|500|h|70|167|18000|1`);
+addCars('Abarth', 'abarth', `
+695|695|h|180|225|30000|2`);
+addCars('Pagani', 'pagani', `
+zondaf|Zonda F|y|602|345|5000000|5
+huayra|Huayra|y|730|383|3000000|5
+utopia|Utopia|y|864|350|3000000|5`);
+addCars('McLaren', 'mclaren', `
+artura|Artura|m|700|330|245000|4
+750s|750S|m|750|332|300000|4
+720s|720S|m|720|341|230000|4
+765lt|765LT|m|765|330|400000|5
+600lt|600LT|m|600|328|200000|4
+570s|570S|m|570|328|130000|4
+gts|GTS|g|635|326|220000|4
+senna|Senna|y|800|340|1000000|5
+elva|Elva|y|815|326|1500000|5
+speedtail|Speedtail|y|1070|403|3000000|5
+p1|P1|y|916|350|1500000|5
+w1|W1|y|1275|350|2000000|5
+f1|F1|o|627|386|20000000|5`);
+addCars('Aston Martin', 'aston', `
+vantage|Vantage|c|665|325|190000|4
+db12|DB12|g|680|325|245000|4
+vanquish|Vanquish|g|835|345|350000|5
+dbs|DBS Superleggera|g|725|340|300000|4
+dbs770|DBS 770 Ultimate|g|770|340|400000|5
+dbx|DBX707|s|707|310|245000|4
+valkyrie|Valkyrie|y|1155|350|3500000|5
+valhalla|Valhalla|y|1079|350|900000|5
+db11|DB11|g|535|334|120000|4
+db5|DB5|o|286|233|900000|5
+one77|One-77|y|760|354|2000000|5`);
+addCars('Bentley', 'bentley', `
+contgt|Continental GT Speed|g|782|335|290000|4
+bentayga|Bentayga|s|550|290|225000|3
+bentaygas|Bentayga Speed|s|635|306|260000|4
+spur|Flying Spur|l|550|318|240000|4
+batur|Mulliner Batur|g|750|336|2000000|5`);
+addCars('Rolls-Royce', 'rr', `
+phantom|Phantom|l|571|250|500000|5
+ghost|Ghost|l|571|250|340000|4
+cullinan|Cullinan|s|571|250|380000|4
+cullinanbb|Cullinan Black Badge|s|600|250|450000|5
+spectre|Spectre|c|585|250|450000|5
+wraith|Wraith|c|632|250|250000|4
+dawn|Dawn|r|571|250|250000|4`);
+addCars('Lotus', 'lotus', `
+emira|Emira|m|406|290|105000|3
+eletre|Eletre|s|612|258|150000|3
+evija|Evija|y|2011|350|2300000|5
+exige|Exige|m|430|290|90000|3
+elise|Elise|r|220|240|45000|3`);
+addCars('Mini', 'mini', `
+cooper|Cooper S|h|204|242|35000|1
+jcw|John Cooper Works|h|231|250|42000|2
+gp|John Cooper Works GP|h|306|265|55000|3`);
+addCars('Land Rover', 'lr', `
+defender|Defender 110|s|300|191|82000|2
+octa|Defender OCTA|s|635|250|195000|4
+rr|Range Rover|s|400|242|145000|3
+rrsv|Range Rover Sport SV|s|635|290|205000|4
+velar|Range Rover Velar|s|250|217|75000|2
+evoque|Range Rover Evoque|s|200|216|55000|1`);
+addCars('Jaguar', 'jaguar', `
+ftype|F-Type R|c|575|300|110000|3
+fpace|F-Pace SVR|s|550|286|110000|3
+etype|E-Type|o|269|240|150000|5
+xj220|XJ220|o|550|341|500000|5`);
+addCars('Bugatti', 'bugatti', `
+veyron|Veyron|y|1001|407|1800000|5
+chiron|Chiron|y|1500|420|3000000|5
+chironss|Chiron Super Sport|y|1600|440|4000000|5
+divo|Divo|y|1500|380|5500000|5
+bolide|Bolide|y|1600|380|4500000|5
+mistral|W16 Mistral|y|1600|420|5000000|5
+tourbillon|Tourbillon|y|1800|445|3800000|5`);
+addCars('Alpine', 'alpine', `
+a110|A110|m|252|250|66000|3
+a110r|A110 R|m|300|285|110000|4
+a290|A290|h|220|170|42000|2`);
+addCars('Renault', 'renault', `
+clio|Clio|h|90|180|20000|1
+r5|5 E-Tech|h|150|150|33000|2
+meganers|Mégane R.S. Trophy|h|300|260|35000|3`);
+addCars('Peugeot', 'peugeot', `
+208|208|h|100|188|22000|1
+3008|3008|s|136|190|40000|1`);
+addCars('Koenigsegg', 'koenigsegg', `
+jesko|Jesko|y|1600|480|3000000|5
+absolut|Jesko Absolut|y|1600|500|3200000|5
+regera|Regera|y|1500|410|3000000|5
+agera|Agera RS|y|1360|447|4000000|5
+gemera|Gemera|y|2300|400|1700000|5
+cc850|CC850|y|1385|0|3500000|5`);
+addCars('Volvo', 'volvo', `
+xc60|XC60|s|250|180|60000|1
+xc90|XC90|s|250|180|80000|1
+ex30|EX30|s|428|180|45000|1`);
+addCars('Polestar', 'polestar', `
+p2|2|l|421|205|55000|1
+p1|1|c|609|250|120000|4`);
+addCars('Toyota', 'toyota', `
+gryaris|GR Yaris|h|280|230|50000|3
+gr86|GR86|c|234|226|38000|2
+supra|GR Supra (A90)|c|340|250|70000|3
+supraa80|Supra (A80)|o|330|250|90000|4
+grcorolla|GR Corolla|h|300|230|60000|4
+yaris|Yaris|h|116|175|25000|1
+rav4|RAV4|s|218|180|45000|1
+lc|Land Cruiser|s|204|175|70000|2
+hilux|Hilux|p|204|175|45000|1
+2000gt|2000GT|o|150|220|1000000|5`);
+addCars('Lexus', 'lexus', `
+lfa|LFA|y|560|325|900000|5
+lc500|LC 500|c|464|270|125000|3
+lx|LX 600|s|415|210|130000|3`);
+addCars('Nissan', 'nissan', `
+gtr|GT-R (R35)|c|570|315|90000|3
+gtrnismo|GT-R Nismo|c|600|315|200000|4
+r34|Skyline GT-R (R34)|o|280|250|200000|5
+r32|Skyline GT-R (R32)|o|280|250|60000|4
+z|Z|c|405|250|65000|3
+370z|370Z|c|328|250|25000|2
+s15|Silvia (S15)|o|250|240|40000|4
+qashqai|Qashqai|s|158|200|35000|1
+patrol|Patrol Nismo|s|428|210|100000|4`);
+addCars('Honda', 'honda', `
+typer|Civic Type R (FL5)|h|329|275|55000|3
+nsx|NSX (2016)|m|581|307|150000|4
+nsxna1|NSX (NA1)|o|280|270|120000|5
+s2000|S2000|r|240|241|35000|3
+jazz|Jazz|h|122|175|25000|1`);
+addCars('Mazda', 'mazda', `
+mx5|MX-5|r|184|219|36000|2
+rx7|RX-7 (FD)|o|280|250|55000|4
+rx8|RX-8|c|231|235|10000|2
+cx5|CX-5|s|165|201|35000|1`);
+addCars('Mitsubishi', 'mitsu', `
+evo9|Lancer Evolution IX|l|280|250|40000|4
+evox|Lancer Evolution X|l|295|250|35000|3`);
+addCars('Subaru', 'subaru', `
+sti|WRX STI|l|300|255|30000|3
+brz|BRZ|c|234|226|38000|2`);
+addCars('Hyundai', 'hyundai', `
+i30n|i30 N|h|280|250|40000|2
+ioniq5n|IONIQ 5 N|s|650|260|75000|3
+i20n|i20 N|h|204|230|28000|2
+tucson|Tucson|s|150|190|35000|1`);
+addCars('Kia', 'kia', `
+ev6gt|EV6 GT|s|585|260|70000|3
+stinger|Stinger GT|l|366|270|40000|2
+sportage|Sportage|s|150|190|35000|1`);
+addCars('Tesla', 'tesla', `
+m3|Model 3|l|283|201|42000|1
+m3p|Model 3 Performance|l|460|262|56000|2
+my|Model Y|s|299|201|45000|1
+msp|Model S Plaid|l|1020|322|110000|3
+mxp|Model X Plaid|s|1020|262|115000|3
+cybertruck|Cybertruck|p|845|209|130000|5`);
+addCars('Ford', 'ford', `
+mustang|Mustang GT|c|446|250|62000|2
+darkhorse|Mustang Dark Horse|c|454|250|75000|3
+gt500|Shelby GT500|c|770|290|120000|4
+gt|GT (2017)|y|656|348|1000000|5
+gt40|GT40|o|380|300|8000000|5
+focusrs|Focus RS|h|350|266|30000|3
+fiestast|Fiesta ST|h|200|232|20000|2
+raptor|F-150 Raptor R|p|710|180|150000|5
+ranger|Ranger Raptor|p|292|180|75000|3
+machegt|Mustang Mach-E GT|s|487|200|70000|2`);
+addCars('Chevrolet', 'chevrolet', `
+c8|Corvette Stingray (C8)|m|482|296|115000|4
+z06|Corvette Z06 (C8)|m|646|312|180000|5
+zr1|Corvette ZR1 (C8)|m|1079|375|250000|5
+camaro|Camaro ZL1|c|650|300|70000|4
+tahoe|Tahoe|s|426|180|90000|4`);
+addCars('Dodge', 'dodge', `
+hellcat|Challenger SRT Hellcat|c|717|320|80000|4
+charger|Charger SRT Hellcat|l|717|315|80000|4
+demon|Challenger SRT Demon|c|852|270|150000|5
+viper|Viper ACR|c|654|285|150000|5
+trx|RAM 1500 TRX|p|712|190|130000|4`);
+addCars('Cadillac', 'cadillac', `
+escalade|Escalade|s|426|180|120000|3`);
+addCars('Jeep', 'jeep', `
+wrangler|Wrangler Rubicon|s|272|180|65000|2
+trackhawk|Grand Cherokee Trackhawk|s|710|290|80000|4`);
+addCars('GMC', 'gmc', `
+hummer|Hummer EV|p|1014|170|150000|5`);
+addCars('Lucid', 'lucid', `
+air|Air|l|830|270|110000|4
+sapphire|Air Sapphire|l|1251|330|250000|5`);
+addCars('Rimac', 'rimac', `
+nevera|Nevera|y|1914|412|2100000|5`);
+addCars('Czinger', 'czinger', `
+21c|21C|y|1250|407|2000000|5`);
+addCars('SSC', 'ssc', `
+tuatara|Tuatara|y|1750|455|2000000|5`);
+addCars('Hennessey', 'hennessey', `
+f5|Venom F5|y|1842|500|2500000|5`);
+addCars('Gordon Murray', 'gma', `
+t50|T.50|y|663|360|3000000|5`);
+addCars('De Tomaso', 'detomaso', `
+p72|P72|y|700|320|1000000|5`);
+addCars('BYD', 'byd', `
+seal|Seal|l|530|180|45000|1
+atto3|Atto 3|s|204|160|38000|1`);
+addCars('Xiaomi', 'xiaomi', `
+su7u|SU7 Ultra|l|1548|350|70000|5`);
+
+/* ---------- tuner kits: id|Kit|Basis-id|Karosserie|PS|Vmax|Preis ca.|Seltenheit ---------- */
+function addKits(tuner, slug, look, cues, text){
+  TUNERS[tuner] = {cues, color: look[0], accent: look[1], rim: look[2], wing: !!look[3]};
+  for (const ln of text.trim().split('\n')){
+    const [id, kit, basis, body, ps, vmax, preis, rar] = ln.trim().split('|');
+    const e = {id: slug + '-' + id, tuner, kit, basis, body, ps: +ps || null, vmax: +vmax || null, preis: +preis || null, rar: +rar || 5, isKit: true};
+    const b = ENTRY[basis]; e.marke = b ? b.marke : ''; e.modell = b ? b.modell : '';
+    KITS.push(e); ENTRY[e.id] = e;
+  }
+}
+addKits('Mansory', 'mansory', ['#16695a', '#e2b33a', '#1c1e22'], 'Forged Carbon (marmoriertes Carbon), riesige Lufteinlässe, zweifarbige Lackierung, eigene Mansory-Schmiedefelgen, Schriftzug „MANSORY“ an Kotflügel und Heck, sehr auffällig', `
+venatus|Venatus|lambo-urus|s|810|305|550000|5
+gronos|Gronos|mb-g63|s|850|250|600000|5
+cullinan|Cullinan|rr-cullinan|s|610|280|800000|5
+phantom|Phantom|rr-phantom|l|610|260|750000|5
+spectre|Spectre|rr-spectre|c|585|250|750000|5
+stallone|Stallone|ferrari-812|g|830|345|900000|5
+f8xx|F8XX|ferrari-f8|m|880|354|750000|5
+siracusa|4XX Siracusa|ferrari-488|m|790|340|600000|5
+p9lm|P9LM Evo 30|porsche-turbos|c|900|360|900000|5
+centuria|Centuria|bugatti-chiron|y|1600|420|3500000|5`);
+addKits('Brabus', 'brabus', ['#17181a', '#c8102e', '#2a2c30'], 'Schriftzug „BRABUS“ und Doppel-B-Logo, oft Mattschwarz mit roten Akzenten, Carbon-Anbauteile, Monoblock-Felgen, Dachspoiler mit LED, „Rocket“-Schriftzüge; aus Bottrop, Spezialist für Mercedes', `
+800|800|mb-g63|s|800|240|350000|4
+xlp|XLP 800 (Pick-up)|mb-g63|p|800|210|550000|5
+700|700 4x4²|mb-g4x4|s|700|210|400000|5
+800gle|800 Coupé|mb-gle63|s|800|280|300000|5
+930|930|mb-gt4|l|930|316|400000|5
+rocket|Rocket 1000|mb-gt4|l|1000|317|550000|5
+820|820 Cabrio|porsche-turbos|r|820|340|450000|5`);
+addKits('Novitec', 'novitec', ['#9a1018', '#f2f2f2', '#1f2125'], 'Breitbau „N-Largo“, Carbon-Anbauteile, Vossen-Felgen, Novitec-Schriftzug; Spezialist für Ferrari, Lamborghini, McLaren und Rolls-Royce („Spofec“)', `
+nlargo|N-Largo S|ferrari-812|g|840|345|700000|5
+f8|F8 Tributo|ferrari-f8|m|802|340|350000|5
+720s|720S|mclaren-720s|m|806|346|350000|5
+spofec|Spofec Overdose|rr-cullinan|s|705|280|600000|5`);
+addKits('Liberty Walk', 'lbwk', ['#6c3fd1', '#f2c230', '#1b1c1f', 1], 'Extremer Breitbau mit sichtbaren Nieten an den Kotflügeln, sehr tief (Luftfahrwerk), großer Heckflügel, Aufkleber „Liberty Walk“ / „LB★WORKS“; Japan', `
+gtr|LB-Works GT-R|nissan-gtr|c|570|315|130000|5
+huracan|LB-Silhouette Huracán|lambo-huracan|m|640|325|300000|5
+aventador|LB-Works Aventador|lambo-aventadors|y|740|350|450000|5
+458|LB-Works 458|ferrari-458|m|570|325|260000|5
+m4|LB-Works M4|bmw-m4f82|c|431|250|100000|5
+f40|LB-Works F40|ferrari-f40|o|478|324|3000000|5`);
+addKits('Rocket Bunny', 'pandem', ['#e8b90f', '#16181b', '#1b1c1f', 1], 'Aufgeschraubte Breitbau-Kotflügel mit sichtbaren Schrauben, Entenbürzel-Spoiler, großer Frontsplitter, Aufkleber „Rocket Bunny“ / „Pandem“; TRA Kyoto, Japan', `
+gt86|GT86 V3|toyota-gr86|c|234|226|50000|4
+supra|Supra|toyota-supra|c|340|250|95000|4
+s15|Silvia S15|nissan-s15|o|250|240|60000|5`);
+addKits('Keyvany', 'keyvany', ['#e9e9e4', '#16181b', '#16181b'], 'Breitbau mit viel Sichtcarbon, Keyvany-Schriftzug, oft Mattweiß oder Mattgrau, sehr große Felgen; Deutschland', `
+keyrus|Keyrus|lambo-urus|s|740|305|400000|5
+x6|X6 M|bmw-x6m|s|700|290|220000|5`);
+addKits('TopCar', 'topcar', ['#3a3f45', '#e8501a', '#16181b', 1], 'Kompletter Sichtcarbon-Breitbau („Stinger GTR“, „Trofeo“), massive Luftschlitze und Kiemen; TopCar Design, Russland', `
+stinger|Stinger GTR|porsche-turbos|c|650|330|450000|5
+trofeo|Trofeo|lambo-urus|s|666|305|380000|5`);
+addKits('ABT', 'abt', ['#8d949c', '#f5c400', '#2a2c30'], 'ABT-Schriftzug an Kotflügel und Grill, Carbon-Anbauteile, eigene ABT-Felgen, limitierte Editionen mit Nummernplakette; Kempten, Spezialist für Audi und VW', `
+rs6r|RS6-R|audi-rs6|k|740|305|220000|4
+rsq8|RSQ8 Signature Edition|audi-rsq8|s|800|305|300000|5
+rs3r|RS3-R|audi-rs3|h|500|290|110000|4
+golfr|Golf R|vw-golfr|h|384|270|70000|3`);
+addKits('AC Schnitzer', 'acs', ['#1f5aa6', '#e9e9e4', '#2a2c30'], 'AC-Schnitzer-Schriftzug, Carbon-Spiegelkappen und Spoiler, eigene AC1/AC3-Felgen, Vierrohr-Auspuff; Aachen, BMW-Spezialist', `
+acs3|ACS3|bmw-m3|l|600|300|150000|4
+acs4|ACS4|bmw-m4|c|600|300|155000|4
+acs5|ACS5|bmw-m5f90|l|720|330|190000|5`);
+addKits('Manhart', 'manhart', ['#151515', '#c9a227', '#c9a227'], 'Schwarz mit goldenen Streifen und goldenen Felgen, Manhart-Schriftzug, Carbon; Wuppertal, BMW-Spezialist', `
+mh3|MH3 600|bmw-m3|l|635|300|160000|5
+mh2|MH2 GTR|bmw-m2|c|630|290|150000|5
+mh8|MH8 800|bmw-m8|c|823|305|250000|5`);
+addKits('G-Power', 'gpower', ['#2c2f35', '#e3242b', '#2a2c30'], 'G-Power-Schriftzug, Kompressor- und Turbo-Umbauten, dezenter Carbon-Look; BMW-Spezialist', `
+hurricane|M5 Hurricane RR|bmw-m5e60|l|750|367|250000|5`);
+addKits('Techart', 'techart', ['#8d939b', '#16181b', '#1f2125', 1], 'Techart-Schriftzug, markanter Heckflügel, Front mit großen Lufteinlässen, Formula-Felgen; Leonberg, Porsche-Spezialist', `
+gtstreet|GTstreet R|porsche-turbos|c|800|360|450000|5
+magnum|Magnum|porsche-cayenne|s|680|290|250000|4`);
+addKits('Gemballa', 'gemballa', ['#d7d7d2', '#e8501a', '#1f2125'], 'Gemballa-Schriftzug, Offroad-Look mit Höherlegung (Marsien) oder Carbon-Breitbau (Avalanche); Porsche-Spezialist', `
+marsien|Marsien|porsche-turbos|c|750|330|700000|5
+avalanche|Avalanche|porsche-turbos|c|800|330|1000000|5`);
+addKits('Singer', 'singer', ['#0e5a8a', '#e9e9e4', '#b8bcc2'], 'Klassische 911-Form (964) mit perfekten Details, Carbon-Karosserie, oft zweifarbig mit Streifen, Singer-Schriftzug; USA', `
+reimagined|911 Reimagined|porsche-964|o|400|260|800000|5
+dls|DLS|porsche-964|o|500|290|2000000|5`);
+addKits('Hamann', 'hamann', ['#e6e6e6', '#16181b', '#16181b'], 'Hamann-Schriftzug, Breitbau-Kits, Carbon-Motorhauben, eigene Felgen; Laupheim', `
+tycoon|Tycoon Evo M|bmw-x6m|s|670|300|200000|5`);
+addKits('Lumma', 'lumma', ['#4a4f57', '#c8102e', '#16181b'], 'Lumma-CLR-Schriftzug, Breitbau mit Carbon, dunkle Felgen', `
+clr|CLR G 770|mb-g63|s|770|240|300000|5`);
+addKits('Startech', 'startech', ['#3b3b3b', '#c8102e', '#2a2c30'], 'Startech-Schriftzug, Widetrack-Verbreiterungen, Monostar-Felgen; gehört zu Brabus, Spezialist für Land Rover', `
+defender|Defender Widetrack|lr-defender|s|300|191|150000|4
+rr|Range Rover|lr-rr|s|400|242|220000|4`);
+addKits('Urban', 'urban', ['#2f3a2f', '#c9a227', '#141517'], 'Urban-Schriftzug, Widetrack-Verbreiterungen, schwarze Monoblock-Felgen, Carbon-Grill; Urban Automotive, UK', `
+defender|Defender Widetrack|lr-defender|s|300|191|160000|4
+urus|Urus|lambo-urus|s|666|305|350000|5
+cullinan|Cullinan|rr-cullinan|s|571|250|550000|5
+g63|G-Wagon Widetrack|mb-g63|s|585|220|300000|5`);
+addKits('Chelsea Truck Co.', 'chelsea', ['#26332a', '#b89b5e', '#1b1c1f'], 'Wide-Track-Kotflügel, Retro-Details, Chelsea-Schriftzug; aus dem Umfeld von Kahn Design, UK', `
+defender|Defender Wide Track|lr-defender|s|300|191|170000|4`);
+addKits('Larte Design', 'larte', ['#1d1d1d', '#35c2f0', '#1b1c1f'], 'Larte-Schriftzug, Carbon-Front mit Tagfahrlicht-Akzenten, Breitbau', `
+winner|Winner|lambo-urus|s|666|305|350000|5`);
+addKits('1016 Industries', 'i1016', ['#e87722', '#16181b', '#16181b', 1], 'Komplette Sichtcarbon-Karosserieteile, großer Heckflügel, 1016-Schriftzug; USA', `
+720s|720S|mclaren-720s|m|720|341|350000|5`);
+addKits('Vorsteiner', 'vorsteiner', ['#6d6f73', '#e8501a', '#16181b', 1], 'Vorsteiner-Schriftzug, Carbon-Aero („Novara“), Flow-Forged-Felgen; USA', `
+novara|Novara|lambo-huracan|m|640|325|320000|5`);
+addKits('Prior Design', 'prior', ['#a3121b', '#16181b', '#16181b', 1], 'Aufgesetzte Breitbau-Kotflügel mit Schrauben, großer Heckflügel, Prior-Design-Schriftzug; Deutschland', `
+pd700|PD700GTR|mb-gtc190|c|476|304|200000|5`);
+addKits('Wald', 'wald', ['#111214', '#c9a227', '#c9a227'], '„Black Bison“-Kits, sehr tief, aggressive Front, Dachspoiler, Wald-Schriftzug; Wald International, Japan', `
+wraith|Black Bison Wraith|rr-wraith|c|632|250|400000|5
+g|Black Bison G-Klasse|mb-g63|s|585|220|280000|5`);
+addKits('Hennessey', 'hpe', ['#0b3d91', '#e9e9e4', '#1b1c1f'], 'Hennessey-Schriftzug, Pick-ups mit Offroad-Umbau und viel mehr Leistung, Nummernplaketten; USA', `
+velo|VelociRaptoR 870|ford-raptor|p|870|180|200000|5
+mammoth|Mammoth 1000 TRX|dodge-trx|p|1012|190|250000|5
+exorcist|Exorcist Camaro ZL1|chevrolet-camaro|c|1000|350|150000|5`);
+
+const ENTRIES = [...KITS, ...CARS];
+const RAR = [null, {label:'Alltag', c:'--r1'}, {label:'Besonders', c:'--r2'}, {label:'Sportler', c:'--r3'}, {label:'Selten', c:'--r4'}, {label:'Legendär', c:'--r5'}];
+const RAR_PTS = [0, 5, 15, 35, 75, 150];
+const SLOT_LABELS = ['Front', 'Heck', 'Seite', 'Detail'];
+const state = {
+  spots: [], dbReady: false, db: null, assets: null, sample: null, user: null,
+  uid: null, maxShots: 4, filter: 'all', profiles: {}, renderToken: 0, offline: false,
+  tab: 'spots', dexFilter: 'all', dexQuery: '', dexShown: 60,
+};
+
+/* ---------- spot helpers ---------- */
+const entryName = e => e.isKit ? `${e.tuner} ${e.kit}` : `${e.marke} ${e.modell}`;
+const baseName = k => { const b = ENTRY[k.basis]; return b ? `${b.marke} ${b.modell}` : k.basis; };
+const kitOf = s => (s.kit_id && ENTRY[s.kit_id]?.isKit) ? ENTRY[s.kit_id] : null;
+function baseOf(s){ const k = kitOf(s); return (s.auto_id && ENTRY[s.auto_id] && !ENTRY[s.auto_id].isKit) ? ENTRY[s.auto_id] : k ? ENTRY[k.basis] || null : null; }
+function tunerOf(s){
+  const k = kitOf(s);
+  if (k) return {marke: k.tuner, kit: k.kit, sicher: s.tuner?.sicher !== false};
+  return s.tuner?.marke ? {marke: s.tuner.marke, kit: s.tuner.kit || '', sicher: s.tuner.sicher !== false} : null;
+}
+function spotName(s){
+  const t = tunerOf(s);
+  if (t) return [t.marke, t.kit].filter(Boolean).join(' ');
+  return [s.marke, s.modell].filter(Boolean).join(' ') || 'Unbekannt';
+}
+function spotSub(s){
+  if (!tunerOf(s)) return s.variante || '';
+  const b = baseOf(s);
+  return 'auf Basis ' + (b ? `${b.marke} ${b.modell}` : [s.marke, s.modell].filter(Boolean).join(' ') || 'unbekannt');
+}
+function specOf(s){
+  const k = kitOf(s), b = baseOf(s), t = tunerOf(s);
+  const serie = {ps: num(s.serie?.ps) || b?.ps || null, vmax: num(s.serie?.vmax) || b?.vmax || null, preis: num(s.serie?.neupreis) || b?.preis || null};
+  if (k) return {ps: k.ps, vmax: k.vmax, preis: k.preis, serie, tuned: true};
+  if (t) return {ps: num(s.kitWerte?.ps) || serie.ps, vmax: num(s.kitWerte?.vmax) || serie.vmax, preis: num(s.kitWerte?.preis) || serie.preis, serie, tuned: true};
+  return {...serie, serie, tuned: false};
+}
+function rarityOf(s){
+  const k = kitOf(s), b = baseOf(s);
+  if (k) return k.rar;
+  const r = b?.rar || clamp(Math.round(num(s.seltenheit) || 1), 1, 5);
+  return tunerOf(s) ? Math.max(r, 4) : r;
+}
+const points = s => RAR_PTS[rarityOf(s)] + (tunerOf(s) ? 25 : 0);
+const artEntry = s => kitOf(s) || baseOf(s) || {id: s.id || 'x', body: 'l', rar: rarityOf(s), marke: s.marke || '', isKit: false};
+
+const EXAMPLES = [
+  {id:'ex1', example:true, auto_id:'lambo-urus', kit_id:'mansory-venatus', marke:'Lamborghini', modell:'Urus', variante:'Urus S',
+   tuner:{marke:'Mansory', kit:'Venatus', sicher:true},
+   merkmale:['Motorhaube aus Forged Carbon mit großen Luftauslässen', 'Verbreiterte Kotflügel mit Mansory-Schriftzug', 'Mansory-Schmiedefelgen', 'Carbon-Dachspoiler und Diffusor'],
+   serie:{ps:666, vmax:305, nullhundert:3.5, drehmoment:850, motor:'4,0 l V8 Biturbo', antrieb:'Allrad', neupreis:245000},
+   fakt:'Mansory sitzt in Brand in der Oberpfalz und ist bekannt für Karosserieteile aus geschmiedetem Carbon.', createdAt: Date.now() - 42 * 60e3},
+  {id:'ex2', example:true, auto_id:'bmw-m3', marke:'BMW', modell:'M3 Competition', variante:'Limousine (G80)', tuner:null,
+   merkmale:['Große Doppelniere im Hochformat', 'Vierrohr-Auspuff', 'Kiemen in den vorderen Kotflügeln'],
+   serie:{ps:530, vmax:250, nullhundert:3.5, drehmoment:650, motor:'3,0 l R6 Biturbo', antrieb:'Allrad (xDrive)', neupreis:98000},
+   fakt:'Das „M“ steht für Motorsport – die BMW M GmbH wurde 1972 gegründet.', createdAt: Date.now() - 26 * 3600e3},
+];
+
+const PHOTOS = {"audi-a1":[0,0,"Vauxford · CC BY-SA 4.0"],"audi-a3":[0,1,"Alexander Migl · CC BY-SA 4.0"],"audi-s3":[0,2,"Alexander Migl · CC BY-SA 4.0"],"audi-rs3":[0,3,"Pierpao · CC0"],"audi-a4":[0,4,"Alexander-93 · CC BY-SA 4.0"],"audi-s4":[0,5,"Alexander Migl · CC BY-SA 4.0"],"audi-rs4":[0,6,"Motor Verso · CC BY 2.0"],"audi-a5":[0,7,"Alexander Migl · CC BY-SA 4.0"],"audi-rs5":[0,8,"Alexandre Prevot from Nancy, France · CC BY-SA 2.0"],"audi-a6":[0,9,"Alexander-93 · CC BY-SA 4.0"],"audi-rs6":[0,10,"Mr.choppers · CC BY-SA 3.0"],"audi-rs6p":[0,11,"Mr.choppers · CC BY-SA 3.0"],"audi-a7":[0,12,"Vauxford · CC BY-SA 4.0"],"audi-rs7":[0,13,"Alexandre Prevot · CC BY-SA 4.0"],"audi-a8":[0,14,"Vauxford · CC BY-SA 4.0"],"audi-s8":[0,15,"Alexander Migl · CC BY-SA 4.0"],"audi-q2":[0,16,"Vauxford · CC BY-SA 4.0"],"audi-q3":[0,17,"Alexander Migl · CC BY-SA 4.0"],"audi-rsq3":[0,18,"Alexander-93 · CC BY-SA 4.0"],"audi-q5":[0,19,"© M 93 · CC BY-SA 3.0 de"],"audi-sq5":[1,0,"Alexander-93 · CC BY-SA 4.0"],"audi-q7":[1,1,"Ethan Llamas · CC BY-SA 4.0"],"audi-sq7":[1,2,"Alexander Migl · CC BY-SA 4.0"],"audi-q8":[1,3,"Vauxford · CC BY-SA 4.0"],"audi-rsq8":[1,4,"© M 93 · CC BY-SA 3.0 de"],"audi-etron":[1,5,"Alexander Migl · CC BY-SA 4.0"],"audi-rsetron":[1,6,"Alexander-93 · CC BY-SA 4.0"],"audi-ttrs":[1,7,"Charles from Port Chester, New York · CC BY 2.0"],"audi-r8":[1,8,"Matti Blume · CC BY 2.0 de"],"audi-r8gt":[1,9,"Matti Blume · CC BY 2.0 de"],"audi-sq":[1,10,"MrWalkr · CC BY-SA 4.0"],"bmw-1er":[1,11,"Alexander-93 · CC BY-SA 4.0"],"bmw-m135":[1,12,"Alexander Migl · CC BY-SA 4.0"],"bmw-m2":[1,13,"Alexander-93 · CC BY-SA 4.0"],"bmw-3er":[1,14,"Vauxford · CC BY-SA 4.0"],"bmw-m340":[1,15,"OWS Photography · CC BY 4.0"],"bmw-m3":[1,16,"Alexander Migl · CC BY-SA 4.0"],"bmw-m3t":[1,17,"MB-one · CC BY-SA 4.0"],"bmw-m3cs":[1,18,"Alexander Migl · CC BY-SA 4.0"],"bmw-4er":[1,19,"Vauxford · CC BY-SA 4.0"],"bmw-m4":[2,0,"Vauxford · CC BY-SA 4.0"],"bmw-m4f82":[2,1,"Dinkun Chen · CC BY-SA 4.0"],"bmw-m4csl":[2,2,"Alexander-93 · CC BY-SA 4.0"],"bmw-5er":[2,3,"Alexander-93 · CC BY-SA 4.0"],"bmw-m5f90":[2,4,"Damian B Oh · CC BY-SA 4.0"],"bmw-m5":[2,5,"Alexander Migl · CC BY-SA 4.0"],"bmw-m5t":[2,6,"OWS Photography · CC BY 4.0"],"bmw-m5cs":[2,7,"MrWalkr · CC BY-SA 4.0"],"bmw-7er":[2,8,"Alexander-93 · CC BY-SA 4.0"],"bmw-i7":[2,9,"Alexander-93 · CC BY-SA 4.0"],"bmw-m8":[2,10,"Alexander Migl · CC BY-SA 4.0"],"bmw-m850":[2,11,"HJUdall · CC0"],"bmw-x1":[2,12,"Alexander-93 · CC BY-SA 4.0"],"bmw-x3":[2,13,"Alexander-93 · CC BY-SA 4.0"],"bmw-x3m":[2,14,"Calreyn88 · CC BY-SA 4.0"],"bmw-x5":[2,15,"Vauxford · CC BY-SA 4.0"],"bmw-x5m":[2,16,"Calreyn88 · CC BY-SA 4.0"],"bmw-x6m":[2,17,"OWS Photography · CC BY 4.0"],"bmw-x7":[2,18,"Alexander-93 · CC BY-SA 4.0"],"bmw-xm":[2,19,"Alexander-93 · CC BY-SA 4.0"],"bmw-xml":[3,0,"Alexander-93 · CC BY-SA 4.0"],"bmw-z4":[3,1,"Vauxford · CC BY-SA 4.0"],"bmw-i4":[3,2,"Alexander Migl · CC BY-SA 4.0"],"bmw-ix":[3,3,"Alexander Migl · CC BY-SA 4.0"],"bmw-i8":[3,4,"茅野ふたば · CC BY-SA 4.0"],"bmw-1m":[3,5,"IFCAR · Public domain"],"bmw-e30":[3,6,"Yu Chu Chin · CC BY-SA 4.0"],"bmw-e46":[3,7,"IFCAR · Public domain"],"bmw-e46csl":[3,8,"MrWalkr · CC BY-SA 4.0"],"bmw-m5e60":[3,9,"nakhon100 · CC BY 2.0"],"bmw-z8":[3,10,"Calreyn88 · CC BY-SA 4.0"],"bmw-m1":[3,11,"Mr.choppers · CC BY-SA 3.0"],"alpina-b3":[3,12,"MrWalkr · CC BY-SA 4.0"],"alpina-b5":[3,13,"MrWalkr · CC BY-SA 4.0"],"alpina-xb7":[3,14,"Alexander Migl · CC BY-SA 4.0"],"alpina-b8":[3,15,"MrWalkr · CC BY-SA 4.0"],"mb-a":[3,16,"Vauxford · CC BY-SA 4.0"],"mb-a45":[3,17,"Alexander Migl · CC BY-SA 4.0"],"mb-cla45":[3,18,"Alexander-93 · CC BY-SA 4.0"],"mb-c":[3,19,"Alexander Migl · CC BY-SA 4.0"],"mb-c63":[4,0,"Tokumeigakarinoaoshima · CC0"],"mb-c63w205":[4,1,"Navigator84 · CC BY-SA 4.0"],"mb-e":[4,2,"Alexander-93 · CC BY-SA 4.0"],"mb-e63":[4,3,"Dinkun Chen · CC BY-SA 4.0"],"mb-s":[4,4,"Alexander Migl · CC BY-SA 4.0"],"mb-s63":[4,5,"Alexander Migl · CC BY-SA 4.0"],"mb-maybach":[4,6,"Alexander Migl · CC BY-SA 4.0"],"mb-cls":[4,7,"Alexander-93 · CC BY-SA 4.0"],"mb-gla":[4,8,"© M 93 · CC BY-SA 3.0 de"],"mb-glc":[4,9,"Alexander Migl · CC BY-SA 4.0"],"mb-glc63":[4,10,"Alexandre Prevot from Nancy, France · CC BY-SA 4.0"],"mb-gle":[4,11,"© M 93 · CC BY-SA 3.0 de"],"mb-gle63":[4,12,"Alexander Migl · CC BY-SA 4.0"],"mb-gls":[4,13,"Alexander Migl · CC BY-SA 4.0"],"mb-glsmay":[4,14,"Calreyn88 · CC BY-SA 4.0"],"mb-g500":[4,15,"Julian Herzog (Website) · CC BY 4.0"],"mb-g63":[4,16,"Tokumeigakarinoaoshima · CC0"],"mb-g4x4":[4,17,"Alexander-93 · CC BY-SA 4.0"],"mb-g580":[4,18,"Alexander Migl · CC BY-SA 4.0"],"mb-gt4":[4,19,"Calreyn88 · CC BY-SA 4.0"],"mb-gtc190":[5,0,"Damian B Oh · CC BY-SA 4.0"],"mb-gtr":[5,1,"Alexander-93 · CC BY-SA 4.0"],"mb-gtbs":[5,2,"Alexander-93 · CC BY-SA 4.0"],"mb-gt63":[5,3,"Alexander-93 · CC BY-SA 4.0"],"mb-sl63":[5,4,"Alexander-93 · CC BY-SA 4.0"],"mb-one":[5,5,"Andrew Basterfield · CC BY-SA 2.0"],"mb-sls":[5,6,"M 93 · CC BY-SA 3.0 de"],"mb-slr":[5,7,"Alexandre Prévot from Nancy, France · CC BY-SA 2.0"],"mb-eqs":[5,8,"Alexander Migl · CC BY-SA 4.0"],"mb-eqs53":[5,9,"Alexander Migl · CC BY-SA 4.0"],"mb-v":[5,10,"© M 93 · CC BY-SA 3.0 de"],"mb-sprinter":[5,11,"Vauxford · CC BY-SA 4.0"],"mb-evo2":[5,12,"Alexander Migl · CC BY-SA 4.0"],"mb-300sl":[5,13,"Bahnfrend · CC BY-SA 4.0"],"smart-fortwo":[5,14,"Vauxford · CC BY-SA 4.0"],"smart-brabus1":[5,15,"Alexander-93 · CC BY-SA 4.0"],"porsche-cayman":[5,16,"多多123 · CC BY 4.0"],"porsche-caymangts":[5,17,"Alexander-93 · CC BY-SA 4.0"],"porsche-gt4rs":[5,18,"Matti Blume · CC BY-SA 4.0"],"porsche-spyderrs":[5,19,"Alexander-93 · CC BY-SA 4.0"],"porsche-boxster":[6,0,"Alexander Migl · CC BY-SA 4.0"],"porsche-carrera":[6,1,"Alexander Migl · CC BY-SA 4.0"],"porsche-carreras":[6,2,"Alexander Migl · CC BY-SA 4.0"],"porsche-gts":[6,3,"Alexander-93 · CC BY-SA 4.0"],"porsche-targa":[6,4,"Alexander Migl · CC BY-SA 4.0"],"porsche-turbos":[6,5,"Alexander Migl · CC BY-SA 4.0"],"porsche-gt3":[6,6,"Alexander Migl · CC BY-SA 4.0"],"porsche-gt3rs":[6,7,"Alexander-93 · CC BY-SA 4.0"],"porsche-gt2rs":[6,8,"MrWalkr · CC BY-SA 4.0"],"porsche-st":[6,9,"Alexander-93 · CC BY-SA 4.0"],"porsche-dakar":[6,10,"Calreyn88 · CC BY-SA 4.0"],"porsche-sportclassic":[6,11,"MrWalkr · CC BY-SA 4.0"],"porsche-918":[6,12,"Thomas Wolf, www.foto-tw.de · CC BY-SA 3.0 de"],"porsche-cgt":[6,13,"Brian Snelson from Hockley, Essex, England · CC BY 2.0"],"porsche-959":[6,14,"M 93 · CC BY-SA 3.0 de"],"porsche-964":[6,15,"Mr.choppers · CC BY-SA 3.0"],"porsche-taycan":[6,16,"Alexander-93 · CC BY-SA 4.0"],"porsche-taycants":[6,17,"Johannes Maximilian · CC BY-SA 4.0"],"porsche-taycangt":[6,18,"Alexander Migl · CC BY-SA 4.0"],"porsche-panamera":[6,19,"Alexander-93 · CC BY-SA 4.0"],"porsche-panameratse":[7,0,"Matti Blume · CC BY-SA 4.0"],"porsche-macan":[7,1,"Alexander-93 · CC BY-SA 4.0"],"porsche-macangts":[7,2,"Throwawayacc222 · CC0"],"porsche-cayenne":[7,3,"© M 93 · CC BY-SA 3.0 de"],"porsche-cayennegt":[7,4,"Alexander Migl · CC BY-SA 4.0"],"porsche-cayenneteh":[7,5,"Alexander-93 · CC BY-SA 4.0"],"ruf-ctr":[7,6,"Alexander Migl · CC BY-SA 4.0"],"ruf-scr":[7,7,"Alexander Migl · CC BY-SA 4.0"],"ruf-yellowbird":[7,8,"Norbert Aepli, Switzerland (User:Noebu) · CC BY 4.0"],"vw-polo":[7,9,"© M 93 · CC BY-SA 3.0 de"],"vw-pologti":[7,10,"Alexander Migl · CC BY-SA 4.0"],"vw-golf":[7,11,"Vauxford · CC BY-SA 4.0"],"vw-gti":[7,12,"Damian B Oh · CC BY-SA 4.0"],"vw-gticlub":[7,13,"Alexander Migl · CC BY-SA 4.0"],"vw-golfr":[7,14,"Dinkun Chen · CC BY-SA 4.0"],"vw-golfrv":[7,15,"Alexander Migl · CC BY-SA 4.0"],"vw-golf1":[7,16,"Fiver, der Hellseher · CC BY-SA 4.0"],"vw-golf2":[7,17,"Alexander-93 · CC BY-SA 4.0"],"vw-r32":[7,18,"Dinkun Chen · CC BY-SA 4.0"],"vw-scirocco":[7,19,"Matti Blume · CC BY-SA 3.0"],"vw-arteon":[8,0,"Alexander-93 · CC BY-SA 4.0"],"vw-passat":[8,1,"© M 93 · CC BY-SA 3.0 de"],"vw-tiguan":[8,2,"Alexander-93 · CC BY-SA 4.0"],"vw-troc":[8,3,"Alexander-93 · CC BY-SA 4.0"],"vw-touareg":[8,4,"Alexander-93 · CC BY-SA 4.0"],"vw-id3":[8,5,"Vauxford · CC BY-SA 4.0"],"vw-id4":[8,6,"LuvsMG481 · CC BY-SA 4.0"],"vw-idbuzz":[8,7,"Alexander Migl · CC BY-SA 4.0"],"vw-multivan":[8,8,"Alexander Migl · CC BY-SA 4.0"],"vw-california":[8,9,"Alexander Migl · CC BY-SA 4.0"],"vw-amarok":[8,10,"© M 93 · CC BY-SA 3.0 de"],"vw-kaefer":[8,11,"Vwexport1300 · CC BY-SA 3.0"],"vw-t1":[8,12,"Alexander Migl · CC BY-SA 4.0"],"vw-xl1":[8,13,"RudolfSimon · CC BY-SA 3.0"],"opel-corsa":[8,14,"Alexander Migl · CC BY-SA 4.0"],"opel-astra":[8,15,"© M 93 · CC BY-SA 3.0 de"],"opel-mokka":[8,16,"Alexander Migl · CC BY-SA 4.0"],"opel-grandland":[8,17,"Alexander Migl · CC BY-SA 4.0"],"opel-opc":[8,18,"Jeremy from Sydney, Australia · CC BY 2.0"],"opel-manta":[8,19,"Martina Spurzem · CC BY-SA 2.0 de"],"opel-gt":[9,0,"Ermell · CC BY-SA 4.0"],"cupra-formentor":[9,1,"Alexander-93 · CC BY-SA 4.0"],"cupra-vz5":[9,2,"Alexander-93 · CC BY-SA 4.0"],"cupra-leon":[9,3,"Calreyn88 · CC BY-SA 4.0"],"cupra-born":[9,4,"© M 93 · CC BY-SA 3.0 de"],"cupra-ateca":[9,5,"Alexander Migl · CC BY-SA 4.0"],"cupra-tavascan":[9,6,"© M 93 · CC BY-SA 3.0 de"],"seat-ibiza":[9,7,"Vauxford · CC BY-SA 4.0"],"seat-leon":[9,8,"Vauxford · CC BY-SA 4.0"],"skoda-fabia":[9,9,"Alexander-93 · CC BY-SA 4.0"],"skoda-octavia":[9,10,"Mike-fiesta · CC BY-SA 4.0"],"skoda-octaviars":[9,11,"Alexander Migl · CC BY-SA 4.0"],"skoda-superb":[9,12,"© M 93 · CC BY-SA 3.0 de"],"skoda-enyaq":[9,13,"Alexander-93 · CC BY-SA 4.0"],"skoda-kodiaq":[9,14,"Alexander-93 · CC BY-SA 4.0"],"ferrari-296":[9,15,"Max Baillie · CC BY-SA 4.0"],"ferrari-296gts":[9,16,"Alexander Migl · CC BY-SA 4.0"],"ferrari-sf90":[9,17,"Alexandre Prevot from Nancy, France · CC BY-SA 2.0"],"ferrari-sf90xx":[9,18,"Calreyn88 · CC BY-SA 4.0"],"ferrari-f80":[9,19,"Pauls.127 · CC0"],"ferrari-849":[10,0,"Andrew Bone from Weymouth, England, UK. · CC BY 4.0"],"ferrari-f8":[10,1,"Alexander Migl · CC BY-SA 4.0"],"ferrari-488":[10,2,"Carlos Valenzuela · CC BY-SA 4.0"],"ferrari-488p":[10,3,"Carlos Valenzuela · CC BY-SA 4.0"],"ferrari-458":[10,4,"Michael Barera · CC BY-SA 4.0"],"ferrari-458s":[10,5,"MotorBlog · CC BY 2.0"],"ferrari-f430":[10,6,"Alexandre Prévot from Nancy, France · CC BY-SA 2.0"],"ferrari-360":[10,7,"Matti Blume · CC BY-SA 4.0"],"ferrari-f355":[10,8,"Alexander-93 · CC BY-SA 4.0"],"ferrari-roma":[10,9,"Mr.choppers · CC BY-SA 3.0"],"ferrari-amalfi":[10,10,"Alexandre Prevot (retouched by NearEMPTiness) · CC BY-SA 4.0"],"ferrari-portofino":[10,11,"Alexander Migl · CC BY-SA 4.0"],"ferrari-812":[10,12,"Vauxford · CC BY-SA 4.0"],"ferrari-812c":[10,13,"Alexander-93 · CC BY-SA 4.0"],"ferrari-12cil":[10,14,"Mr.choppers · CC BY-SA 4.0"],"ferrari-puro":[10,15,"Alexander Migl · CC BY-SA 4.0"],"ferrari-f12":[10,16,"Alexander Migl · CC BY-SA 4.0"],"ferrari-f12tdf":[10,17,"Tokumeigakarinoaoshima · CC BY-SA 4.0"],"ferrari-599":[10,18,"Mr.choppers · CC BY-SA 3.0"],"ferrari-gtc4":[10,19,"Ank Kumar · CC BY-SA 4.0"],"ferrari-cali":[11,0,"Dllu · CC BY-SA 4.0"],"ferrari-sp3":[11,1,"Prova MO · CC BY-SA 4.0"],"ferrari-laferrari":[11,2,"Axion23 · CC BY 2.0"],"ferrari-enzo":[11,3,"Axion23 · CC BY 2.0"],"ferrari-f50":[11,4,"MrWalkr · CC BY-SA 4.0"],"ferrari-f40":[11,5,"Will ainsworth · CC BY-SA 3.0"],"ferrari-testarossa":[11,6,"Alexander Migl · CC BY-SA 4.0"],"lambo-huracan":[11,7,"MrWalkr · CC BY-SA 4.0"],"lambo-tecnica":[11,8,"Alexander-93 · CC BY-SA 4.0"],"lambo-sto":[11,9,"Alexander Migl · CC BY-SA 4.0"],"lambo-sterrato":[11,10,"MrWalkr · CC BY-SA 4.0"],"lambo-performante":[11,11,"Matti Blume · CC BY-SA 4.0"],"lambo-temerario":[11,12,"Alexander Migl · CC BY-SA 4.0"],"lambo-revuelto":[11,13,"Alexander Migl · CC BY-SA 4.0"],"lambo-svj":[11,14,"Alexander-93 · CC BY-SA 4.0"],"lambo-aventadors":[11,15,"Calreyn88 · CC BY-SA 4.0"],"lambo-ultimae":[11,16,"MrWalkr · CC BY-SA 4.0"],"lambo-urus":[11,17,"Alexander-93 · CC BY-SA 4.0"],"lambo-urusp":[11,18,"Alexander-93 · CC BY-SA 4.0"],"lambo-urusse":[11,19,"Alexander Migl · CC BY-SA 4.0"],"lambo-gallardo":[12,0,"JoachimKohler-HB · CC BY-SA 4.0"],"lambo-murcielago":[12,1,"Alexandre Prévot from Nancy, France · CC BY-SA 2.0"],"lambo-countach":[12,2,"Alexander-93 · CC BY-SA 4.0"],"lambo-countachc":[12,3,"Brian Snelson from Hockley, Essex, England · CC BY 2.0"],"lambo-diablo":[12,4,"MrWalkr · CC BY-SA 4.0"],"lambo-miura":[12,5,"Chelsea Jay · CC BY-SA 4.0"],"lambo-sian":[12,6,"Johannes Maximilian · CC BY-SA 4.0"],"maserati-mc20":[12,7,"Alexander Migl · CC BY-SA 4.0"],"maserati-gt":[12,8,"Alexander-93 · CC BY-SA 4.0"],"maserati-grecale":[12,9,"Alexander Migl · CC BY-SA 4.0"],"maserati-levante":[12,10,"Alexandre Prévot from Nancy, France · CC BY-SA 2.0"],"maserati-qp":[12,11,"Alexander Migl · CC BY-SA 4.0"],"maserati-ghibli":[12,12,"Dinkun Chen · CC BY-SA 4.0"],"alfa-giulia":[12,13,"Alexander-93 · CC BY-SA 4.0"],"alfa-stelvio":[12,14,"OWS Photography · CC BY 4.0"],"alfa-gtam":[12,15,"Calreyn88 · CC BY-SA 4.0"],"alfa-33":[12,16,"Y.Leclercq · CC BY-SA 4.0"],"alfa-4c":[12,17,"Thesupermat · CC BY-SA 3.0"],"alfa-8c":[12,18,"Keanan from Orlando, United States · CC BY 2.0"],"alfa-tonale":[12,19,"Matthias v.d. Elbe · CC BY 4.0"],"alfa-junior":[13,0,"Alexander-93 · CC BY-SA 4.0"],"fiat-500":[13,1,"Ad Meskens · CC BY-SA 3.0"],"abarth-695":[13,2,"Petar Milošević · CC BY-SA 4.0"],"pagani-zondaf":[13,3,"LSDSL · CC BY-SA 2.0 de"],"pagani-huayra":[13,4,"Matti Blume · CC BY-SA 4.0"],"pagani-utopia":[13,5,"MrWalkr · CC BY-SA 4.0"],"mclaren-artura":[13,6,"Liam Walker · CC BY-SA 4.0"],"mclaren-750s":[13,7,"Alexander-93 · CC BY-SA 4.0"],"mclaren-720s":[13,8,"Vauxford · CC BY-SA 4.0"],"mclaren-765lt":[13,9,"Alexander Migl · CC BY-SA 4.0"],"mclaren-600lt":[13,10,"Matti Blume · CC BY-SA 4.0"],"mclaren-570s":[13,11,"Mr.choppers · CC BY-SA 3.0"],"mclaren-gts":[13,12,"Matti Blume · CC BY-SA 4.0"],"mclaren-senna":[13,13,"Alexander Migl · CC BY-SA 4.0"],"mclaren-elva":[13,14,"Liam Walker · CC BY-SA 4.0"],"mclaren-speedtail":[13,15,"Alexander Migl · CC BY-SA 4.0"],"mclaren-p1":[13,16,"Axion23 (original) Tony Patt (cropped) · CC BY 2.0"],"mclaren-w1":[13,17,"Mustang Joe · CC0"],"mclaren-f1":[13,18,"Chelsea Jay · CC BY-SA 4.0"],"aston-vantage":[13,19,"Alexander-93 · CC BY-SA 4.0"],"aston-db12":[14,0,"Alexander-93 · CC BY-SA 4.0"],"aston-vanquish":[14,1,"Alexander Migl · CC BY-SA 4.0"],"aston-dbs":[14,2,"Alexander Migl · CC BY-SA 4.0"],"aston-dbs770":[14,3,"MrWalkr · CC BY-SA 4.0"],"aston-dbx":[14,4,"Alexander Migl · CC BY-SA 4.0"],"aston-valkyrie":[14,5,"Alexander Migl · CC BY-SA 4.0"],"aston-valhalla":[14,6,"MrWalkr · CC BY-SA 4.0"],"aston-db11":[14,7,"Phil Guest from Bournemouth, UK · CC BY-SA 2.0"],"aston-db5":[14,8,"DeFacto · CC BY-SA 4.0"],"aston-one77":[14,9,"MrWalkr · CC BY-SA 4.0"],"bentley-contgt":[14,10,"Alexander-93 · CC BY-SA 4.0"],"bentley-bentayga":[14,11,"Alexander Migl · CC BY-SA 4.0"],"bentley-bentaygas":[14,12,"Matti Blume · CC BY-SA 4.0"],"bentley-spur":[14,13,"Alexander Migl · CC BY-SA 4.0"],"rr-phantom":[14,14,"Vauxford · CC BY-SA 4.0"],"rr-ghost":[14,15,"Mr.choppers · CC BY-SA 3.0"],"rr-cullinan":[14,16,"Vauxford · CC BY-SA 4.0"],"rr-cullinanbb":[14,17,"Oleg Yunakov · CC BY-SA 4.0"],"rr-spectre":[14,18,"Mr.choppers · CC BY-SA 3.0"],"rr-wraith":[14,19,"Vauxford · CC BY-SA 4.0"],"rr-dawn":[15,0,"Vauxford · CC BY-SA 4.0"],"lotus-emira":[15,1,"Mr.choppers · CC BY-SA 4.0"],"lotus-eletre":[15,2,"Alexander Migl · CC BY-SA 4.0"],"lotus-evija":[15,3,"Liam Walker · CC BY-SA 4.0"],"lotus-exige":[15,4,"Arthouse.de · CC BY-SA 4.0"],"lotus-elise":[15,5,"Overlaet · CC BY-SA 3.0"],"mini-cooper":[15,6,"Alexander-93 · CC BY-SA 4.0"],"mini-jcw":[15,7,"Alexander Migl · CC BY-SA 4.0"],"mini-gp":[15,8,"Vauxford · CC BY-SA 4.0"],"lr-defender":[15,9,"Damian B Oh · CC BY-SA 4.0"],"lr-octa":[15,10,"Calreyn88 · CC BY-SA 4.0"],"lr-rr":[15,11,"Vauxford · CC BY-SA 4.0"],"lr-rrsv":[15,12,"Calreyn88 · CC BY-SA 4.0"],"lr-velar":[15,13,"Alexander-93 · CC BY-SA 4.0"],"lr-evoque":[15,14,"Vauxford · CC BY-SA 4.0"],"jaguar-ftype":[15,15,"Vauxford · CC BY-SA 4.0"],"jaguar-fpace":[15,16,"LuvsMG481 · CC BY-SA 4.0"],"jaguar-etype":[15,17,"DeFacto · CC BY-SA 4.0"],"jaguar-xj220":[15,18,"Brian Snelson · CC BY 2.0"],"bugatti-veyron":[15,19,"M 93 · CC BY-SA 3.0 de"],"bugatti-chiron":[16,0,"Calreyn88 · CC BY-SA 4.0"],"bugatti-chironss":[16,1,"MrWalkr · CC BY-SA 4.0"],"bugatti-divo":[16,2,"Matti Blume · CC BY-SA 4.0"],"bugatti-bolide":[16,3,"Mr.choppers · CC BY-SA 4.0"],"bugatti-mistral":[16,4,"Mustang Joe · CC0"],"bugatti-tourbillon":[16,5,"MrWalkr · CC BY-SA 4.0"],"alpine-a110":[16,6,"Alexander Migl · CC BY-SA 4.0"],"alpine-a110r":[16,7,"Matti Blume · CC BY-SA 4.0"],"alpine-a290":[16,8,"Alexander Migl · CC BY-SA 4.0"],"renault-clio":[16,9,"© M 93 · CC BY-SA 3.0 de"],"renault-r5":[16,10,"Alexander Migl · CC BY-SA 4.0"],"renault-meganers":[16,11,"Vauxford · CC BY-SA 4.0"],"peugeot-208":[16,12,"© M 93 · CC BY-SA 3.0 de"],"peugeot-3008":[16,13,"Alexander-93 · CC BY-SA 4.0"],"koenigsegg-jesko":[16,14,"Matti Blume · CC BY-SA 4.0"],"koenigsegg-absolut":[16,15,"Matti Blume · CC BY-SA 4.0"],"koenigsegg-regera":[16,16,"Aab254 · CC BY 4.0"],"koenigsegg-agera":[16,17,"MrWalkr · CC BY-SA 4.0"],"koenigsegg-gemera":[16,18,"MrWalkr · CC BY-SA 4.0"],"koenigsegg-cc850":[16,19,"MrWalkr · CC BY-SA 4.0"],"volvo-xc60":[17,0,"Vauxford · CC BY-SA 4.0"],"volvo-xc90":[17,1,"© M 93 · CC BY-SA 3.0 de"],"volvo-ex30":[17,2,"Alexander-93 · CC BY-SA 4.0"],"polestar-p2":[17,3,"© M 93 · CC BY-SA 3.0 de"],"polestar-p1":[17,4,"Mr.choppers · CC BY-SA 3.0"],"toyota-gryaris":[17,5,"© M 93 · CC BY-SA 3.0 de"],"toyota-gr86":[17,6,"Elise240SX · CC BY-SA 4.0"],"toyota-supra":[17,7,"Gold Pony · CC BY 3.0"],"toyota-supraa80":[17,8,"TTTNIS · CC0"],"toyota-grcorolla":[17,9,"Elise240SX · CC BY-SA 4.0"],"toyota-yaris":[17,10,"Vauxford · CC BY-SA 4.0"],"toyota-rav4":[17,11,"Mr.choppers · CC BY-SA 4.0"],"toyota-lc":[17,12,"TTTNIS · CC0"],"toyota-hilux":[17,13,"Vauxford · CC BY-SA 4.0"],"toyota-2000gt":[17,14,"unbekannt · CC BY-SA 3.0"],"lexus-lfa":[17,15,"Tennen-Gas · CC BY-SA 3.0"],"lexus-lc500":[17,16,"Mr.choppers · CC BY-SA 3.0"],"lexus-lx":[17,17,"Kevauto · CC BY-SA 4.0"],"nissan-gtr":[17,18,"Yu Chu Chin · CC BY-SA 4.0"],"nissan-gtrnismo":[17,19,"Calreyn88 · CC BY-SA 4.0"],"nissan-r34":[18,0,"Matti Blume · CC BY-SA 4.0"],"nissan-r32":[18,1,"Tokumeigakarinoaoshima · CC0"],"nissan-z":[18,2,"Kazyakuruma · CC BY-SA 4.0"],"nissan-370z":[18,3,"Alexander-93 · CC BY-SA 4.0"],"nissan-s15":[18,4,"Calreyn88 · CC BY-SA 4.0"],"nissan-qashqai":[18,5,"Alexander-93 · CC BY-SA 4.0"],"nissan-patrol":[18,6,"Ethan Llamas · CC BY-SA 4.0"],"honda-typer":[18,7,"Dinkun Chen · CC BY-SA 4.0"],"honda-nsx":[18,8,"Calreyn88 · CC BY-SA 4.0"],"honda-nsxna1":[18,9,"先従隗始 · CC0"],"honda-s2000":[18,10,"Rich Niewiroski Jr. · CC BY 2.5"],"honda-jazz":[18,11,"Calreyn88 · CC BY-SA 4.0"],"mazda-mx5":[18,12,"Alexander-93 · CC BY-SA 4.0"],"mazda-rx7":[18,13,"Aos.1905 · CC BY 4.0"],"mazda-rx8":[18,14,"IFCAR · Public domain"],"mazda-cx5":[18,15,"Mr.choppers · CC BY-SA 3.0"],"mitsu-evo9":[18,16,"MrWalkr · CC BY-SA 4.0"],"mitsu-evox":[18,17,"Calreyn88 · CC BY-SA 4.0"],"subaru-sti":[18,18,"Yu Chu Chin · CC BY 4.0"],"subaru-brz":[18,19,"Elise240SX · CC BY-SA 4.0"],"hyundai-i30n":[19,0,"Alexander Migl · CC BY-SA 4.0"],"hyundai-ioniq5n":[19,1,"Alexander Migl · CC BY-SA 4.0"],"hyundai-i20n":[19,2,"Alexander Migl · CC BY-SA 4.0"],"hyundai-tucson":[19,3,"SsmIntrigue · CC BY-SA 4.0"],"kia-ev6gt":[19,4,"Alexander-93 · CC BY-SA 4.0"],"kia-stinger":[19,5,"Alexander Migl · CC BY-SA 4.0"],"kia-sportage":[19,6,"LuvsMG481 · CC BY-SA 4.0"],"tesla-m3":[19,7,"Alexander-93 · CC BY-SA 4.0"],"tesla-m3p":[19,8,"Chanokchon · CC BY-SA 4.0"],"tesla-my":[19,9,"© M 93 · CC BY-SA 3.0 de"],"tesla-msp":[19,10,"Peteratkins · CC BY-SA 4.0"],"tesla-mxp":[19,11,"Vauxford · CC BY-SA 4.0"],"tesla-cybertruck":[19,12,"Mr.choppers · CC BY-SA 3.0"],"ford-mustang":[19,13,"WMrapids · CC0"],"ford-darkhorse":[19,14,"Alexander Migl · CC BY-SA 4.0"],"ford-gt500":[19,15,"MrWalkr · CC BY-SA 4.0"],"ford-gt":[19,16,"Alexander-93 · CC BY-SA 4.0"],"ford-gt40":[19,17,"edvvc from London, UK · CC BY 2.0"],"ford-focusrs":[19,18,"Jiří Sedláček · CC BY-SA 4.0"],"ford-fiestast":[19,19,"Alexander Migl · CC BY-SA 4.0"],"ford-raptor":[20,0,"RL GNZLZ · CC BY-SA 2.0"],"ford-ranger":[20,1,"Alexander-93 · CC BY-SA 4.0"],"ford-machegt":[20,2,"Alexander Migl · CC BY-SA 4.0"],"chevrolet-c8":[20,3,"Alexander Migl · CC BY-SA 4.0"],"chevrolet-z06":[20,4,"OWS Photography · CC BY 4.0"],"chevrolet-zr1":[20,5,"Asukite · CC BY-SA 4.0"],"chevrolet-camaro":[20,6,"Calreyn88 · CC BY-SA 4.0"],"chevrolet-tahoe":[20,7,"Kevauto · CC BY-SA 4.0"],"dodge-hellcat":[20,8,"Ermell · CC BY-SA 4.0"],"dodge-charger":[20,9,"OWS Photography · CC BY 4.0"],"dodge-demon":[20,10,"Matti Blume · CC BY-SA 4.0"],"dodge-viper":[20,11,"Calreyn88 · CC BY 4.0"],"dodge-trx":[20,12,"Alexander Migl · CC BY-SA 4.0"],"cadillac-escalade":[20,13,"BuickCentury04 · CC BY-SA 4.0"],"jeep-wrangler":[20,14,"Alexander Migl · CC BY-SA 4.0"],"jeep-trackhawk":[20,15,"Matti Blume · CC BY-SA 4.0"],"gmc-hummer":[20,16,"MercurySable99 · CC BY-SA 4.0"],"lucid-air":[20,17,"Mr.choppers · CC BY-SA 3.0"],"lucid-sapphire":[20,18,"Alexander-93 · CC BY-SA 4.0"],"rimac-nevera":[20,19,"MrWalkr · CC BY-SA 4.0"],"czinger-21c":[21,0,"MrWalkr · CC BY-SA 4.0"],"ssc-tuatara":[21,1,"SSCNA · CC BY-SA 4.0"],"hennessey-f5":[21,2,"Vauxford · CC BY-SA 4.0"],"gma-t50":[21,3,"MrWalkr · CC BY-SA 4.0"],"detomaso-p72":[21,4,"Calreyn88 · CC BY-SA 4.0"],"byd-seal":[21,5,"User3204 · CC BY-SA 4.0"],"byd-atto3":[21,6,"Alexander Migl · CC BY-SA 4.0"],"xiaomi-su7u":[21,7,"S5A-0043 · CC BY 4.0"],"mansory-venatus":[21,8,"Calreyn88 · CC BY 4.0"],"mansory-gronos":[21,9,"Alexandre Prevot · CC BY-SA 4.0"],"mansory-cullinan":[21,10,"Calreyn88 · CC BY-SA 4.0"],"mansory-phantom":[21,11,"Alexandre Prevot from Nancy, France · CC BY-SA 2.0"],"mansory-stallone":[21,12,"Alexandre Prévot from Nancy, France · CC BY-SA 2.0"],"mansory-siracusa":[21,13,"Alexandre Prevot from Nancy, France · CC BY-SA 2.0"],"mansory-centuria":[21,14,"Alexandre Prévot from Nancy, France · CC BY-SA 2.0"],"brabus-800":[21,15,"Calreyn88 · CC BY-SA 4.0"],"brabus-xlp":[21,16,"Damian B Oh · CC BY-SA 4.0"],"brabus-700":[21,17,"Alexander Migl · CC BY-SA 4.0"],"brabus-800gle":[21,18,"Calreyn88 · CC BY-SA 4.0"],"brabus-930":[21,19,"Matti Blume · CC BY-SA 4.0"],"brabus-820":[22,0,"MrWalkr · CC BY-SA 4.0"],"novitec-nlargo":[22,1,"Tokumeigakarinoaoshima · CC BY-SA 4.0"],"novitec-f8":[22,2,"Tokumeigakarinoaoshima · CC BY-SA 4.0"],"novitec-720s":[22,3,"先従隗始 · CC0"],"novitec-spofec":[22,4,"Tokumeigakarinoaoshima · CC BY-SA 4.0"],"lbwk-gtr":[22,5,"Xnatedawgx · CC BY-SA 4.0"],"lbwk-huracan":[22,6,"先従隗始 · CC0"],"lbwk-aventador":[22,7,"Tokumeigakarinoaoshima · CC BY-SA 4.0"],"lbwk-458":[22,8,"Tokumeigakarinoaoshima · CC BY-SA 4.0"],"lbwk-m4":[22,9,"Norbert Aepli, Switzerland (User:Noebu) · CC BY 4.0"],"lbwk-f40":[22,10,"765よっちゃん765 · CC BY 4.0"],"pandem-gt86":[22,11,"Shadman Samee from Dhaka, Bangladesh · CC BY-SA 2.0"],"pandem-s15":[22,12,"Thomas Vogt from Paderborn, Deutschland · CC BY 2.0"],"keyvany-keyrus":[22,13,"Mrjournalistt · CC BY-SA 4.0"],"topcar-stinger":[22,14,"Alexandre Prevot from Nancy, France · CC BY-SA 2.0"],"topcar-trofeo":[22,15,"Calreyn88 · CC BY-SA 4.0"],"abt-rs6r":[22,16,"Alexandre Prevot · CC BY-SA 4.0"],"abt-rsq8":[22,17,"Alexander Migl · CC BY-SA 4.0"],"abt-rs3r":[22,18,"Alexandre Prevot from Nancy, France · CC BY-SA 2.0"],"abt-golfr":[22,19,"Clément Bucco-Lechat · CC BY-SA 3.0"],"gpower-hurricane":[23,0,"G-Power GmbH · Public domain"],"techart-gtstreet":[23,1,"Alexandre Prevot from Nancy, France · CC BY-SA 2.0"],"techart-magnum":[23,2,"Liam Walker · CC BY-SA 4.0"],"gemballa-avalanche":[23,3,"Thomas Vogt from Paderborn, Deutschland · CC BY 2.0"],"singer-reimagined":[23,4,"MrWalkr · CC BY-SA 4.0"],"singer-dls":[23,5,"Calreyn88 · CC BY 4.0"],"hamann-tycoon":[23,6,"Alexandre Prévot from Nancy, France · CC BY-SA 2.0"],"startech-defender":[23,7,"emperornie · CC BY-SA 2.0"],"startech-rr":[23,8,"Matti Blume · CC BY-SA 4.0"],"urban-defender":[23,9,"Tokumeigakarinoaoshima · CC BY-SA 4.0"],"urban-g63":[23,10,"Calreyn88 · CC BY-SA 4.0"],"chelsea-defender":[23,11,"Alexander Migl · CC BY-SA 4.0"],"vorsteiner-novara":[23,12,"Loadbeta · CC0"],"wald-g":[23,13,"Tokumeigakarinoaoshima · CC BY-SA 4.0"],"hpe-mammoth":[23,14,"HJUdall · CC0"]}; const PHOTO_V = '2609181608'; /*PHOTOS*/
+/* ---------- shared pieces ---------- */
+function plate(name){
+  return h('div', {class:'plate'}, h('div', {class:'eu'}, h('i', {}, '★★★'), 'D'), h('div', {class:'txt'}, name));
+}
+function rarityBadge(r){
+  r = clamp(r || 1, 1, 5); const info = RAR[r], dots = h('span', {class:'dots'});
+  for (let i = 1; i <= 5; i++) dots.append(h('i', {class: i <= r ? 'on' : ''}));
+  return h('span', {class:'badge rar', style:`--rc:var(${info.c})`}, dots, info.label);
+}
+function specCell(label, value, unit, up){
+  return h('div', {class:'spec'},
+    h('b', {class: up ? 'up' : ''}, value ?? '–', value != null && unit ? h('small', {}, unit) : null),
+    h('em', {}, label));
+}
+function specsRow(s){
+  const v = specOf(s), pr = moneyShort(v.preis);
+  return h('div', {class:'specs'},
+    specCell('PS', v.ps ? deNum(v.ps) : null, '', v.tuned && v.ps !== v.serie.ps),
+    specCell('km/h Vmax', v.vmax ? deNum(v.vmax) : null, '', v.tuned && v.vmax !== v.serie.vmax),
+    specCell('Preis ca.', pr ? pr[0] : null, pr ? pr[1] : '', false));
+}
+const photoURL = id => /^(https?|data|blob):/.test(id) ? id : '/_blob/' + id;
+const artNode = e => h('div', {style:'width:100%;height:100%', html: carSVG(e)});
+// real photos: PHOTOS[id] = [sheet, tile, credit]; sheets are 4x5 grids of 16:9 tiles in img/
+function photoOf(e){
+  if (!e) return null;
+  let p = PHOTOS[e.id], own = true;
+  if (!p && e.isKit){ p = PHOTOS[e.basis]; own = false; }
+  return p ? {sheet: p[0], idx: p[1], credit: p[2], own} : null;
+}
+function pictureNode(e){
+  const p = photoOf(e);
+  if (!p) return artNode(e);
+  const x = (p.idx % 4) * 100 / 3, y = Math.floor(p.idx / 4) * 25;
+  return h('div', {class:'sprite', role:'img', 'aria-label': entryName(e),
+    style:`background-image:url(img/s${String(p.sheet).padStart(2, '0')}.jpg?v=${PHOTO_V});background-position:${x}% ${y}%`});
+}
+function creditLine(e){
+  const p = photoOf(e);
+  return p ? h('p', {class:'fine credit'}, (p.own ? 'Foto: ' : 'Foto zeigt das Serienmodell: ') + p.credit + ' · Wikimedia Commons') : null;
+}
+function openCredits(){
+  $('#detailTitle').textContent = 'Bildnachweise';
+  fill($('#detailBody'),
+    h('p', {class:'hint'}, 'Die Autodex-Fotos stammen von Wikimedia Commons und stehen unter freien Lizenzen (z. B. CC BY-SA). Urheber und Lizenz je Foto:'),
+    h('dl', {class:'table'}, ENTRIES.filter(e => PHOTOS[e.id]).map(e =>
+      h('div', {}, h('dt', {}, entryName(e)), h('dd', {style:'font-weight:500'}, PHOTOS[e.id][2])))));
+  openSheet('#detailSheet');
+}
+
+function spotter(s){
+  if (s.example) return {name:'Beispiel', avatarUrl:null};
+  const p = state.profiles[s.by];
+  return {name: s.by && s.by === state.uid ? 'Du' : (p?.name || 'Dein Kumpel'), avatarUrl: p?.avatarUrl || null};
+}
+
+/* ---------- feed ---------- */
+function card(s){
+  const t = tunerOf(s), ph = h('div', {class:'ph'});
+  ph.append(s.photos?.[0] ? h('img', {src: photoURL(s.photos[0]), alt: spotName(s), loading:'lazy'}) : pictureNode(artEntry(s)));
+  ph.append(h('div', {class:'badges'}, rarityBadge(rarityOf(s)),
+    h('span', {style:'display:flex;gap:6px'},
+      t ? h('span', {class:'badge tuner'}, t.marke) : null,
+      s.example ? h('span', {class:'badge example'}, 'Beispiel') : null)));
+  const who = spotter(s), sub = spotSub(s);
+  return h('button', {class:'card', type:'button', onclick: () => openDetail(s)},
+    ph,
+    h('div', {class:'body'},
+      plate(spotName(s)),
+      sub ? h('div', {class:'variant'}, sub) : null,
+      specsRow(s),
+      h('div', {class:'meta'},
+        who.avatarUrl ? h('img', {src: who.avatarUrl, alt:''}) : null,
+        h('span', {}, [who.name, s.place, ago(s.createdAt)].filter(Boolean).join(' · ')))));
+}
+
+function players(){
+  const tally = new Map();
+  for (const s of state.spots){
+    if (!s.by) continue;
+    const t = tally.get(s.by) || {id:s.by, pts:0, n:0, maxPs:0};
+    t.pts += points(s); t.n++; t.maxPs = Math.max(t.maxPs, specOf(s).ps || 0);
+    tally.set(s.by, t);
+  }
+  if (state.uid && !tally.has(state.uid)) tally.set(state.uid, {id:state.uid, pts:0, n:0, maxPs:0});
+  return [...tally.values()].sort((a, b) => (b.id === state.uid) - (a.id === state.uid) || b.pts - a.pts);
+}
+function renderDuel(ps){
+  const me = ps[0], rival = ps[1];
+  const box = (p, fallbackName) => {
+    if (!p) return h('div', {class:'player empty'},
+      h('div', {class:'who'}, h('span', {}, fallbackName)), h('div', {class:'pts'}, '0'),
+      h('div', {class:'sub'}, fallbackName === 'Du' ? 'Noch kein Spot' : 'Teil den Link, dann geht’s los'));
+    const prof = state.profiles[p.id], other = p === me ? rival : me;
+    return h('div', {class:'player' + (other && p.pts > other.pts ? ' lead' : '')},
+      h('div', {class:'who'}, prof?.avatarUrl ? h('img', {src: prof.avatarUrl, alt:''}) : null,
+        h('span', {}, p.id === state.uid ? 'Du' : (prof?.name || 'Dein Kumpel'))),
+      h('div', {class:'pts'}, deNum(p.pts)),
+      h('div', {class:'sub'}, `${p.n} ${p.n === 1 ? 'Spot' : 'Spots'}` + (p.maxPs ? ` · max ${deNum(p.maxPs)} PS` : '')));
+  };
+  $('#duel').replaceChildren(box(me, 'Du'), h('div', {class:'vs'}, 'VS'), box(rival, 'Dein Kumpel'));
+}
+function chips(el, opts, current, onPick){
+  el.replaceChildren(...opts.map(([k, label]) => h('button', {class:'chip', type:'button',
+    'aria-pressed': String(current === k), onclick: () => onPick(k)}, label)));
+}
+function renderFilters(ps){
+  const opts = [['all', 'Alle'], ['mine', 'Meine']];
+  for (const p of ps) if (p.id !== state.uid) opts.push(['u:' + p.id, state.profiles[p.id]?.name || 'Kumpel']);
+  opts.push(['tuner', 'Tuner'], ['rare', 'Selten+']);
+  if (!opts.some(o => o[0] === state.filter)) state.filter = 'all';
+  chips($('#filters'), opts, state.filter, k => { state.filter = k; renderAll(); });
+}
+function applyFilter(list){
+  const f = state.filter;
+  if (f === 'mine') return list.filter(s => s.by && s.by === state.uid);
+  if (f.startsWith('u:')) return list.filter(s => s.by === f.slice(2));
+  if (f === 'tuner') return list.filter(s => tunerOf(s));
+  if (f === 'rare') return list.filter(s => rarityOf(s) >= 4);
+  return list;
+}
+
+async function renderAll(){
+  const token = ++state.renderToken;
+  const ids = [...new Set(state.spots.map(s => s.by).filter(Boolean).concat(state.uid ? [state.uid] : []))];
+  if (state.user && ids.length){
+    try { state.profiles = await state.user.profiles(ids); } catch { /* names stay generic */ }
+    if (token !== state.renderToken) return;
+  }
+  const ps = players();
+  renderDuel(ps); renderFilters(ps);
+  if (state.tab === 'dex') renderDex();
+  const feed = $('#feed'); feed.replaceChildren();
+  if (state.spots.length === 0){
+    feed.append(h('div', {class:'empty-note'},
+      state.offline
+        ? [h('strong', {}, 'Vorschau. '), 'Die Verbindung zum Server fehlt noch: Trag in config.js die Adresse deiner Supabase-Funktion ein. So sieht ein Scan aus:']
+        : state.dbReady
+          ? [h('strong', {}, 'Noch keine Spots. '), 'Tipp unten auf „Spotten“ und mach ein Foto oder nimm eins aus der Galerie. So sieht ein Scan aus:']
+          : 'Spots werden geladen …'));
+    EXAMPLES.forEach(s => feed.append(card(s)));
+    return;
+  }
+  const list = applyFilter(state.spots);
+  if (list.length === 0) feed.append(h('div', {class:'empty-note'}, 'Keine Spots für diesen Filter.'));
+  list.forEach(s => feed.append(card(s)));
+}
+
+/* ---------- autodex ---------- */
+function spottedMap(){
+  const m = new Map();
+  for (const s of state.spots) for (const id of new Set([s.kit_id, s.auto_id]))
+    if (id && ENTRY[id]){ if (!m.has(id)) m.set(id, []); m.get(id).push(s); }
+  return m;
+}
+const DEX_FILTERS = [['all', 'Alle'], ['kits', 'Tuner-Kits'], ['seen', 'Gespottet'], ['open', 'Noch offen'], ['legend', 'Legendär']];
+function renderDex(){
+  const seen = spottedMap();
+  $('#dexCount').textContent = seen.size;
+  $('#dexTotal').textContent = ENTRIES.length;
+  $('#dexBar').style.width = (seen.size / ENTRIES.length * 100).toFixed(1) + '%';
+  chips($('#dexFilters'), DEX_FILTERS, state.dexFilter, k => { state.dexFilter = k; state.dexShown = 60; renderDex(); });
+  const f = state.dexFilter, words = state.dexQuery.toLowerCase().split(/\s+/).filter(Boolean);
+  const list = ENTRIES.filter(e => {
+    if (f === 'kits' && !e.isKit) return false;
+    if (f === 'seen' && !seen.has(e.id)) return false;
+    if (f === 'open' && seen.has(e.id)) return false;
+    if (f === 'legend' && e.rar < 5) return false;
+    if (!words.length) return true;
+    const hay = (entryName(e) + ' ' + (e.isKit ? baseName(e) : '') + ' ' + BODY_LABEL[e.body]).toLowerCase();
+    return words.every(w => hay.includes(w));
+  });
+  const grid = $('#dexGrid'); grid.replaceChildren();
+  if (!list.length) grid.append(h('div', {class:'empty-note'}, 'Nichts gefunden. Probier einen anderen Suchbegriff.'));
+  list.slice(0, state.dexShown).forEach(e => grid.append(dexCard(e, seen.get(e.id))));
+  const rest = list.length - state.dexShown;
+  $('#dexMore').hidden = rest <= 0;
+  $('#dexMore').textContent = `Mehr anzeigen (${rest} weitere)`;
+}
+function dexCard(e, spots){
+  const pic = h('div', {class:'pic'}), photo = spots?.find(s => s.photos?.length);
+  pic.append(photo ? h('img', {src: photoURL(photo.photos[0]), alt: entryName(e), loading:'lazy'}) : pictureNode(e));
+  pic.append(h('div', {class:'badges'}, rarityBadge(e.rar),
+    spots ? h('span', {class:'badge tuner'}, '✓ Gespottet') : e.isKit ? h('span', {class:'badge'}, 'Kit') : null));
+  const vals = [e.ps ? deNum(e.ps) + ' PS' : null, e.vmax ? deNum(e.vmax) + ' km/h' : null].filter(Boolean).join(' · ');
+  return h('button', {class:'dex' + (spots ? ' seen' : ''), type:'button', onclick: () => openEntry(e)},
+    pic,
+    h('div', {class:'t'},
+      h('small', {}, e.isKit ? e.tuner : e.marke),
+      h('b', {}, e.isKit ? e.kit : e.modell),
+      e.isKit ? h('span', {}, 'Basis ' + baseName(e)) : null,
+      h('span', {}, vals)));
+}
+function setTab(t){
+  state.tab = t;
+  $('#tabSpots').setAttribute('aria-selected', String(t === 'spots'));
+  $('#tabDex').setAttribute('aria-selected', String(t === 'dex'));
+  $('#viewSpots').hidden = t !== 'spots';
+  $('#viewDex').hidden = t !== 'dex';
+  if (t === 'dex') renderDex();
+  try { localStorage.setItem('spotbuch.tab', t); } catch {}
+}
+
+/* ---------- detail pieces ---------- */
+function row(label, value){ return value ? h('div', {}, h('dt', {}, label), h('dd', {}, value)) : null; }
+function upValue(base, now, unit){
+  if (now && base && now !== base) return [h('span', {class:'was'}, deNum(base)), h('span', {class:'now'}, deNum(now) + ' ' + unit)];
+  const v = now || base; return v ? deNum(v) + ' ' + unit : null;
+}
+function specsTable(s){
+  const v = specOf(s), S = s.serie || {}, serieTag = v.tuned ? ' (Serie)' : '';
+  return h('dl', {class:'table'},
+    row('Leistung', upValue(v.serie.ps, v.ps, 'PS')),
+    row('Höchstgeschwindigkeit', upValue(v.serie.vmax, v.vmax, 'km/h')),
+    row('0–100 km/h', num(S.nullhundert) ? num(S.nullhundert).toLocaleString('de-DE') + ' s' + serieTag : null),
+    row('Drehmoment', num(S.drehmoment) ? deNum(S.drehmoment) + ' Nm' + serieTag : null),
+    row('Motor', str(S.motor)), row('Antrieb', str(S.antrieb)),
+    row('Baujahr', str(s.baujahr)), row('Farbe', str(s.farbe)),
+    row(v.tuned ? 'Preis Tuner-Version' : 'Preis', money(v.preis)),
+    v.tuned ? row('Preis Serie', money(v.serie.preis)) : null);
+}
+function tunerBox(s){
+  const t = tunerOf(s);
+  if (!t) return h('div', {class:'tunerbox none'}, h('small', {}, 'Tuner-Check'), h('strong', {}, 'Serienfahrzeug'), h('em', {}, 'Kein Tuner-Kit erkannt.'));
+  return h('div', {class:'tunerbox'},
+    h('small', {}, t.sicher ? 'Tuner erkannt' : 'Tuner vermutet'),
+    h('strong', {}, t.marke), t.kit ? h('span', {}, t.kit) : null,
+    h('em', {}, spotSub(s) + (kitOf(s) ? ' · im Autodex' : '')));
+}
+function cuesList(s){
+  const m = (s.merkmale || []).filter(Boolean);
+  return m.length ? [h('h3', {class:'block-h'}, 'Daran erkannt'), h('ul', {class:'cues'}, m.map(x => h('li', {}, x)))] : null;
+}
+function badgeRow(r, ...extra){ return h('div', {style:'display:flex;gap:8px;flex-wrap:wrap'}, rarityBadge(r), ...extra); }
+function quickVals(e){ return [e.ps ? deNum(e.ps) + ' PS' : null, e.vmax ? deNum(e.vmax) + ' km/h' : null].filter(Boolean).join(' · '); }
+
+/* ---------- sheets ---------- */
+function openSheet(sel){
+  const el = $(sel); el.hidden = false; el.scrollTop = 0;
+  document.body.style.overflow = 'hidden';
+  el.querySelector('.icon-btn')?.focus();
+}
+function closeSheet(sel){
+  $(sel).hidden = true;
+  if ($('#newSheet').hidden && $('#detailSheet').hidden) document.body.style.overflow = '';
+}
+function showErr(sel, msg){ const e = $(sel); e.textContent = msg; e.hidden = false; }
+
+function openDetail(s){
+  const who = spotter(s), link = kitOf(s) || baseOf(s), sub = spotSub(s);
+  const gallery = s.photos?.length
+    ? h('div', {class:'gallery'}, s.photos.map(id => h('img', {src: photoURL(id), alt: spotName(s)})))
+    : h('div', {class:'pic169'}, pictureNode(artEntry(s)));
+  let del = null;
+  if (!s.example && state.db && s.by && s.by === state.uid){
+    let armed = false;
+    del = h('button', {class:'btn danger block', type:'button'}, 'Spot löschen');
+    del.onclick = async () => {
+      if (!armed){ armed = true; del.textContent = 'Wirklich löschen? Nochmal tippen'; return; }
+      del.disabled = true; del.textContent = 'Wird gelöscht …';
+      try {
+        await state.db.doc('spots/' + s.id).delete();
+        if (state.assets) for (const id of s.photos || []) { try { await state.assets.delete(id); } catch {} }
+        closeSheet('#detailSheet'); toast('Spot gelöscht');
+      } catch {
+        armed = false; del.disabled = false; del.textContent = 'Löschen hat nicht geklappt – nochmal versuchen';
+      }
+    };
+  }
+  $('#detailTitle').textContent = s.example ? 'Beispiel-Spot' : 'Spot';
+  fill($('#detailBody'),
+    gallery,
+    h('div', {style:'display:flex;flex-direction:column;gap:8px'},
+      plate(spotName(s)), sub ? h('div', {class:'variant', style:'margin-top:0'}, sub) : null,
+      badgeRow(rarityOf(s), h('span', {class:'badge'}, '+' + points(s) + ' Punkte'))),
+    tunerBox(s),
+    h('h3', {class:'block-h'}, 'Fahrzeugdaten'), specsTable(s),
+    cuesList(s),
+    s.fakt ? h('div', {class:'fact'}, h('b', {}, 'Wusstest du?'), s.fakt) : null,
+    link ? h('button', {class:'btn block', type:'button', onclick: () => openEntry(link)}, 'Im Autodex ansehen') : null,
+    h('div', {class:'meta'}, who.avatarUrl ? h('img', {src: who.avatarUrl, alt:''}) : null,
+      h('span', {}, ['Gespottet von ' + who.name, s.place, s.createdAt ? ago(s.createdAt) : null].filter(Boolean).join(' · '))),
+    s.note ? h('p', {class:'hint'}, '„' + s.note + '“') : null,
+    h('p', {class:'fine'}, 'Erkennung und Werte stammen vom KI-Scan und aus dem Autodex. Tuner-Angaben und Preise sind ungefähr.'),
+    del);
+  openSheet('#detailSheet');
+}
+
+function kitsFor(e){
+  const ks = KITS.filter(k => k.basis === e.id);
+  if (!ks.length) return null;
+  return [h('h3', {class:'block-h'}, 'Tuner-Versionen'),
+    h('div', {class:'mods'}, ks.map(k => h('button', {class:'mod', type:'button', style:'border:0;text-align:left;width:100%', onclick: () => openEntry(k)},
+      h('span', {class:'dot'}), h('div', {}, h('b', {}, entryName(k)), h('small', {}, quickVals(k))))))];
+}
+function openEntry(e){
+  const spots = spottedMap().get(e.id) || [];
+  const photos = spots.flatMap(s => s.photos || []).slice(0, 8);
+  const t = e.isKit ? TUNERS[e.tuner] : null, base = e.isKit ? ENTRY[e.basis] : null;
+  $('#detailTitle').textContent = 'Autodex';
+  fill($('#detailBody'),
+    photos.length
+      ? h('div', {class:'gallery'}, photos.map(id => h('img', {src: photoURL(id), alt: entryName(e)})))
+      : [h('div', {class:'pic169'}, pictureNode(e)), creditLine(e)],
+    h('div', {style:'display:flex;flex-direction:column;gap:8px'},
+      plate(entryName(e)),
+      e.isKit ? h('div', {class:'variant', style:'margin-top:0'}, 'auf Basis ' + baseName(e)) : null,
+      badgeRow(e.rar, h('span', {class:'badge'}, BODY_LABEL[e.body]),
+        spots.length ? h('span', {class:'badge tuner'}, `✓ ${spots.length}× gespottet`) : null)),
+    h('dl', {class:'table'},
+      row('Leistung', upValue(base?.ps, e.ps, 'PS')),
+      row('Höchstgeschwindigkeit', upValue(base?.vmax, e.vmax, 'km/h')),
+      row('Preis', money(e.preis)),
+      row('Klasse', BODY_LABEL[e.body]),
+      row('Seltenheit', RAR[e.rar].label),
+      row('Punkte beim Spotten', '+' + (RAR_PTS[e.rar] + (e.isKit ? 25 : 0)))),
+    t ? [h('h3', {class:'block-h'}, 'So erkennst du ' + e.tuner), h('div', {class:'fact'}, t.cues)] : null,
+    base ? h('button', {class:'btn block', type:'button', onclick: () => openEntry(base)}, 'Serienmodell: ' + entryName(base)) : null,
+    e.isKit ? null : kitsFor(e),
+    h('h3', {class:'block-h'}, 'Eure Spots'),
+    spots.length
+      ? h('div', {class:'minispots'}, spots.map(s => h('button', {type:'button', onclick: () => openDetail(s)},
+          s.photos?.[0] ? h('img', {src: photoURL(s.photos[0]), alt:''}) : null,
+          h('span', {}, spotter(s).name + ' · ' + ago(s.createdAt)))))
+      : h('p', {class:'hint'}, 'Noch nicht gespottet. Halt die Augen offen!'),
+    h('p', {class:'fine'}, 'Werte sind ungefähre Hersteller- bzw. Tunerangaben. Preise gerundet, bei Klassikern und Auslaufmodellen der heutige Marktwert. Gibt es kein freies Foto, zeigt der Autodex eine Zeichnung. Sobald ihr das Auto spottet, erscheint euer eigenes Foto.'));
+  openSheet('#detailSheet');
+}
+
+/* ---------- new spot: photos ---------- */
+const draft = { shots: [], scan: null, ctl: null };
+function resetDraft(){
+  draft.shots.forEach(s => URL.revokeObjectURL(s.url));
+  draft.shots = []; draft.scan = null;
+  $('#inPlace').value = ''; $('#inNote').value = '';
+}
+function showStep(name){ for (const n of ['Photos', 'Scan', 'Result']) $('#step' + n).hidden = n !== name; }
+
+async function toJpeg(file, max = 1600, q = 0.85){
+  let src, w, h2, done = () => {};
+  try {
+    src = await createImageBitmap(file, {imageOrientation:'from-image'});
+    w = src.width; h2 = src.height; done = () => src.close?.();
+  } catch {
+    const url = URL.createObjectURL(file);
+    src = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+    w = src.naturalWidth; h2 = src.naturalHeight; done = () => URL.revokeObjectURL(url);
+  }
+  const k = Math.min(1, max / Math.max(w, h2)), c = document.createElement('canvas');
+  c.width = Math.round(w * k); c.height = Math.round(h2 * k);
+  c.getContext('2d').drawImage(src, 0, 0, c.width, c.height); done();
+  return new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error('encode')), 'image/jpeg', q));
+}
+function renderShots(){
+  const box = $('#shots'); box.replaceChildren();
+  draft.shots.forEach((s, i) => box.append(h('div', {class:'shot'},
+    h('img', {src: s.url, alt: 'Foto ' + (i + 1)}),
+    h('button', {class:'x', type:'button', 'aria-label':'Foto entfernen', onclick: () => {
+      URL.revokeObjectURL(s.url); draft.shots.splice(i, 1); draft.scan = null; renderShots(); }}, '×'))));
+  for (let i = draft.shots.length; i < state.maxShots; i++)
+    box.append(h('button', {class:'shot slot', type:'button', onclick: () => $('#camInput').click()}, '+ ' + (SLOT_LABELS[i] || 'Foto')));
+  const full = draft.shots.length >= state.maxShots;
+  $('#btnCam').disabled = full; $('#btnGal').disabled = full;
+  $('#btnScan').hidden = !state.sample; $('#btnScan').disabled = !draft.shots.length;
+  $('#btnManual').hidden = !!state.sample || !draft.shots.length;
+  $('#shotHint').textContent = state.maxShots > 1
+    ? 'Tipp: Front, Heck und Seite fotografieren und Schriftzüge an Kotflügel, Heck und Felgen mit draufnehmen. Daran erkennt der Scan Tuner wie Mansory oder Brabus.'
+    : 'Tipp: Fotografiere das Auto schräg von vorne, mit Schriftzügen an Kotflügel und Felgen im Bild.';
+}
+async function addFiles(files){
+  $('#photoErr').hidden = true;
+  for (const f of files){
+    if (draft.shots.length >= state.maxShots) break;
+    try {
+      const blob = await toJpeg(f);
+      draft.shots.push({blob, url: URL.createObjectURL(blob)}); draft.scan = null;
+    } catch { showErr('#photoErr', 'Dieses Foto ließ sich nicht öffnen. Nimm bitte ein JPG oder PNG.'); }
+    renderShots();
+  }
+}
+
+/* ---------- scan ---------- */
+let CATALOG_TEXT = null;
+function catalogText(){
+  if (CATALOG_TEXT) return CATALOG_TEXT;
+  const kits = KITS.map(k => `${k.id}: ${k.tuner} ${k.kit} (Basis ${baseName(k)})`).join('\n');
+  const tuners = Object.entries(TUNERS).map(([n, t]) => `${n}: ${t.cues}`).join('\n');
+  const cars = CARS.map(c => `${c.id}: ${c.marke} ${c.modell}`).join('\n');
+  return CATALOG_TEXT = `TUNER-KITS (id: Tuner Kit, Basis)\n${kits}\n\nTUNER-ERKENNUNGSMERKMALE\n${tuners}\n\nAUTOS (id: Marke Modell)\n${cars}`;
+}
+function buildPrompt(n){
+  return `Du bist Experte für Autos und besonders für Tuner-Fahrzeuge (Mansory, Brabus, Novitec, Liberty Walk, Keyvany, ABT usw.) und hilfst beim Carspotting in Deutschland.
+${n > 1 ? 'Die ' + n + ' Bilder zeigen dasselbe Fahrzeug aus verschiedenen Blickwinkeln.' : 'Das Bild zeigt ein Fahrzeug.'} Scanne das GANZE Fahrzeug.
+
+1. Bestimme das Serienauto: Marke, Modell, Generation, Variante.
+2. Prüfe genau, ob es ein Tuner-Fahrzeug ist. Achte auf Tuner-Schriftzüge und Logos (Kotflügel, Heck, Seitenschweller, Felgen, Bremssättel, Grill), Forged Carbon, Breitbau-Kotflügel, Nieten an den Radläufen, eigene Frontschürzen, Motorhauben mit Hutzen, Dachspoiler, besondere Felgen und Lackierungen. Werksausstattungen wie AMG Line, M Paket, S line, R-Line oder GT-Pakete sind KEIN Tuner. Erfinde keinen Tuner: ohne klare Merkmale bleibt "tuner.marke" leer (""); bist du dir nicht ganz sicher, setze "sicher": false.
+3. Nenne in "merkmale" bis zu 5 kurze Dinge auf den Fotos, an denen du Auto und Tuner erkannt hast.
+4. Nutze den KATALOG unten: Passt das Auto, setze "auto_id" auf die id des Serienmodells (nächstliegende Variante). Passt ein Tuner-Kit, setze "kit_id". Ist ein Tuner zu sehen, dessen Kit nicht im Katalog steht, lass "kit_id" leer (""), fülle "tuner" aus und schätze "kit_werte" (PS, Vmax in km/h, Preis in €).
+5. "serie": Werte der Serien-Variante – PS, Vmax in km/h, 0–100 in s, Drehmoment in Nm, Motor, Antrieb, Neupreis in € (grob).
+6. "seltenheit" 1–5 aus Sicht eines Carspotters in Deutschland (1 Alltagsauto … 5 Hypercar oder Kleinserie).
+7. "fakt": ein kurzer, zutreffender Fun Fact auf Deutsch (zum Tuner, falls einer erkannt wurde).
+
+Lies keine Kennzeichen aus und beschreibe keine Personen. Ist kein Auto zu sehen: "erkannt": false, alle Texte leer und alle Zahlen 0.
+
+Antworte mit JSON in genau dieser Form (unbekannte Zahlen = 0, unbekannte Texte = ""):
+{"erkannt":true,"auto_id":"lambo-urus","kit_id":"mansory-venatus","marke":"Lamborghini","modell":"Urus","variante":"Urus S","baujahr":"seit 2022","farbe":"Mattschwarz mit Carbon","sicherheit":0.8,
+"tuner":{"marke":"Mansory","kit":"Venatus","sicher":true},
+"merkmale":["Motorhaube aus Forged Carbon","Mansory-Schriftzug am Kotflügel"],
+"serie":{"ps":666,"vmax":305,"nullhundert":3.5,"drehmoment":850,"motor":"4,0 l V8 Biturbo","antrieb":"Allrad","neupreis":245000},
+"kit_werte":{"ps":0,"vmax":0,"preis":0},"seltenheit":5,"fakt":"..."}
+
+KATALOG
+${catalogText()}`;
+}
+
+function normalize(r){
+  r = r && typeof r === 'object' && !Array.isArray(r) ? r : {};
+  const S = r.serie || {}, K = r.kit_werte || {};
+  const T = r.tuner && typeof r.tuner === 'object' && str(r.tuner.marke) ? r.tuner : null;
+  let conf = num(r.sicherheit) || 0; if (conf > 1) conf /= 100;
+  const kid = str(r.kit_id, 60), aid = str(r.auto_id, 60);
+  const kit = ENTRY[kid]?.isKit ? ENTRY[kid] : null;
+  const auto = ENTRY[aid] && !ENTRY[aid].isKit ? ENTRY[aid] : kit ? ENTRY[kit.basis] || null : null;
+  const tuner = kit ? {marke: kit.tuner, kit: kit.kit, sicher: T?.sicher !== false}
+    : T ? {marke: str(T.marke, 40), kit: str(T.kit, 50), sicher: T.sicher !== false} : null;
+  return {
+    erkannt: r.erkannt !== false && !!(str(r.marke) || auto || kit),
+    auto_id: auto ? auto.id : null, kit_id: kit ? kit.id : null, tuner,
+    marke: str(r.marke, 30) || auto?.marke || '', modell: str(r.modell, 40) || auto?.modell || '',
+    variante: str(r.variante, 80), baujahr: str(r.baujahr, 30), farbe: str(r.farbe, 40), sicherheit: clamp(conf, 0, 1),
+    merkmale: (Array.isArray(r.merkmale) ? r.merkmale : []).map(x => str(x, 90)).filter(Boolean).slice(0, 5),
+    serie: {ps: num(S.ps), vmax: num(S.vmax), nullhundert: num(S.nullhundert), drehmoment: num(S.drehmoment),
+            motor: str(S.motor, 50), antrieb: str(S.antrieb, 30), neupreis: num(S.neupreis)},
+    kitWerte: tuner && !kit ? {ps: num(K.ps), vmax: num(K.vmax), preis: num(K.preis)} : null,
+    seltenheit: clamp(Math.round(num(r.seltenheit) || 1), 1, 5), fakt: str(r.fakt, 240),
+  };
+}
+
+const SCAN_OFF = ['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed', 'images_unavailable'];
+const SCAN_MSG = {
+  rate_limited: 'Gerade zu viele Scans. Warte kurz und tipp dann nochmal auf „Fahrzeug scannen“.',
+  session_expired: 'Deine Claude-Anmeldung ist abgelaufen. Melde dich neu an und versuch es nochmal.',
+  image_rejected: 'Ein Foto ließ sich nicht lesen. Entferne es und nimm ein anderes.',
+  refused: 'Mit diesen Fotos hat der Scan nicht geklappt. Probier andere Fotos vom Auto.',
+  invalid_json: 'Das Scan-Ergebnis war unvollständig. Tipp nochmal auf „Fahrzeug scannen“.',
+  empty_completion: 'Das Scan-Ergebnis war leer. Probier es mit anderen Fotos.',
+  prompt_too_large: 'Der Scan war zu groß. Versuch es mit weniger Fotos.',
+  limit: 'Das Tageslimit für Scans ist erreicht. Morgen geht es weiter.',
+  busy: 'Gerade zu viele Scans. Warte kurz und tipp dann nochmal auf „Fahrzeug scannen“.',
+  offline: 'Keine Internetverbindung. Versuch es gleich nochmal.',
+  crew: 'Der Crew-Code stimmt nicht mehr. Öffne den Einladungslink nochmal.',
+  bad_image: 'Ein Foto ließ sich nicht lesen. Entferne es und nimm ein anderes.',
+  api_key: 'Der KI-Scan ist auf dem Server noch nicht fertig eingerichtet (API-Schlüssel fehlt oder ist falsch).',
+  incomplete: 'Das Scan-Ergebnis war unvollständig. Tipp nochmal auf „Fahrzeug scannen“.',
+};
+async function runScan(fresh){
+  if (!state.sample || !draft.shots.length) return;
+  $('#photoErr').hidden = true;
+  showStep('Scan');
+  $('#scanImg').src = draft.shots[0].url;
+  $('#scanStatus').textContent = 'Fahrzeug wird gescannt …';
+  const ctl = draft.ctl = new AbortController();
+  const opts = {images: draft.shots.map(s => s.blob), signal: ctl.signal, modelTier: 'default',
+    onText: () => { $('#scanStatus').textContent = 'Tuner und Werte werden abgeglichen …'; }};
+  if (fresh) opts.cache = false;
+  try {
+    draft.scan = normalize(await state.sample.json(buildPrompt(draft.shots.length), opts));
+    showResult();
+  } catch (e) {
+    showStep('Photos');
+    const code = e?.code;
+    if (code === 'cancelled') return;
+    if (SCAN_OFF.includes(code)){
+      state.sample = null; renderShots();
+      showErr('#photoErr', 'Der KI-Scan ist hier nicht freigegeben. Du kannst den Spot trotzdem speichern und Marke und Modell selbst eintragen.');
+      return;
+    }
+    showErr('#photoErr', SCAN_MSG[code] || 'Verbindungsproblem beim Scan. Versuch es gleich nochmal.');
+  } finally {
+    if (draft.ctl === ctl) draft.ctl = null;
+  }
+}
+
+/* ---------- result ---------- */
+function field(id, label, value, onInput, ph){
+  return h('div', {class:'field'}, h('label', {for:id}, label),
+    h('input', {id, type:'text', value: value || '', maxlength:'60', autocomplete:'off', placeholder: ph || null, oninput: e => onInput(e.target.value.trim())}));
+}
+function renderResultInfo(){
+  const s = draft.scan, conf = s.sicherheit;
+  fill($('#resultInfo'),
+    tunerBox(s),
+    s.erkannt || tunerOf(s) ? [
+      badgeRow(rarityOf(s), h('span', {class:'badge'}, '+' + points(s) + ' Punkte'),
+        conf ? h('span', {class:'badge'}, 'Sicherheit ' + Math.round(conf * 100) + ' %') : null),
+      h('h3', {class:'block-h'}, 'Fahrzeugdaten'), specsTable(s),
+      cuesList(s),
+      s.fakt ? h('div', {class:'fact'}, h('b', {}, 'Wusstest du?'), s.fakt) : null] : null);
+}
+function showResult(){
+  const s = draft.scan, conf = s.sicherheit;
+  let note = null;
+  if (!s.erkannt) note = h('div', {class:'msg err'}, state.sample
+    ? 'Kein Auto sicher erkannt. Trag Marke und Modell selbst ein oder scanne mit einem näheren Foto neu.'
+    : 'Trag Marke und Modell selbst ein.');
+  else if (conf && conf < 0.5) note = h('div', {class:'msg'}, 'Der Scan ist sich unsicher. Prüf die Angaben und korrigier sie, falls nötig.');
+  const setTuner = (key, v) => {
+    const t = {marke: s.tuner?.marke || '', kit: s.tuner?.kit || '', sicher: true, [key]: v};
+    const k = kitOf(s);
+    if (k && (k.tuner !== t.marke || k.kit !== t.kit)) s.kit_id = null;
+    s.tuner = t.marke ? t : null;
+    if (s.tuner && !s.kit_id && !s.kitWerte) s.kitWerte = {ps: null, vmax: null, preis: null};
+    renderResultInfo();
+  };
+  fill($('#resultView'),
+    h('div', {class:'shot'}, h('img', {src: draft.shots[0].url, alt:''})),
+    note,
+    h('div', {class:'edit-row'},
+      field('edMarke', 'Marke', s.marke, v => { s.marke = v; s.auto_id = null; renderResultInfo(); }),
+      field('edModell', 'Modell', s.modell, v => { s.modell = v; s.auto_id = null; renderResultInfo(); })),
+    h('div', {class:'edit-row'},
+      field('edTuner', 'Tuner', s.tuner?.marke, v => setTuner('marke', v), 'z. B. Mansory'),
+      field('edKit', 'Kit / Modell', s.tuner?.kit, v => setTuner('kit', v), 'z. B. Venatus')),
+    h('div', {id:'resultInfo', class:'sheet-in'}));
+  renderResultInfo();
+  $('#btnRescan').hidden = !state.sample;
+  $('#saveErr').hidden = true;
+  showStep('Result');
+  $('#newSheet').scrollTop = 0;
+}
+
+/* ---------- save ---------- */
+const SAVE_MSG = {
+  too_large: 'Ein Foto ist zu groß. Entferne es und nimm ein anderes.',
+  quota_or_state: 'Der Foto-Speicher des Spotbuchs ist voll. Lösche alte Spots, um Platz zu schaffen.',
+  quota_exceeded: 'Das Spotbuch ist voll. Lösche ein paar alte Spots.',
+  rate_limited: 'Gerade zu viele Uploads. Warte kurz und tipp nochmal auf „Spot speichern“.',
+  resource_exhausted: 'Gerade zu viele Uploads. Warte kurz und tipp nochmal auf „Spot speichern“.',
+  upstream_auth: 'Deine Anmeldung ist abgelaufen. Lade die Seite neu.',
+  invalid_argument: 'Du kannst in diesem Spotbuch nur mitlesen, nicht speichern.',
+  offline: 'Keine Internetverbindung. Versuch es gleich nochmal.',
+  crew: 'Der Crew-Code stimmt nicht mehr. Öffne den Einladungslink nochmal.',
+};
+async function saveSpot(){
+  const s = draft.scan; if (!s) return;
+  if (!state.db || !state.assets){ showErr('#saveErr', 'Speichern geht nur, wenn du das Spotbuch in Claude geöffnet hast.'); return; }
+  if (!s.marke && !s.modell && !tunerOf(s)){ showErr('#saveErr', 'Trag mindestens Marke oder Modell ein.'); return; }
+  const btn = $('#btnSave'), re = $('#btnRescan');
+  btn.disabled = re.disabled = true; $('#saveErr').hidden = true;
+  const uploaded = [];
+  try {
+    for (let i = 0; i < draft.shots.length; i++){
+      btn.textContent = draft.shots.length > 1 ? `Foto ${i + 1}/${draft.shots.length} …` : 'Foto wird hochgeladen …';
+      uploaded.push((await state.assets.upload(draft.shots[i].blob, {type:'image/jpeg'})).id);
+    }
+    btn.textContent = 'Wird gespeichert …';
+    const {erkannt, ...car} = s;
+    const doc = JSON.parse(JSON.stringify({...car, by: state.uid, createdAt: Date.now(), photos: uploaded,
+      place: str($('#inPlace').value, 60), note: str($('#inNote').value, 120)}));
+    await state.db.collection('spots').add(doc);
+    const pts = points(s), name = spotName(s);
+    resetDraft(); showStep('Photos'); renderShots(); closeSheet('#newSheet');
+    toast(`${name} gespeichert · +${pts} Punkte`);
+  } catch (e) {
+    for (const id of uploaded) state.assets.delete(id).catch(() => {});
+    showErr('#saveErr', SAVE_MSG[e?.code] || 'Speichern hat nicht geklappt. Versuch es nochmal.');
+  } finally {
+    btn.disabled = re.disabled = false; btn.textContent = 'Spot speichern';
+  }
+}
+
+/* ---------- wiring ---------- */
+function openNew(){
+  if (!$('#stepScan').hidden || !draft.scan) showStep('Photos');
+  renderShots(); openSheet('#newSheet');
+}
+function closeNew(){ draft.ctl?.abort(); closeSheet('#newSheet'); }
+$('#fab').onclick = openNew;
+$('#btnCam').onclick = () => $('#camInput').click();
+$('#btnGal').onclick = () => $('#galInput').click();
+$('#camInput').onchange = e => { addFiles([...e.target.files]); e.target.value = ''; };
+$('#galInput').onchange = e => { addFiles([...e.target.files]); e.target.value = ''; };
+$('#btnScan').onclick = () => runScan(false);
+$('#btnRescan').onclick = () => runScan(true);
+$('#btnStop').onclick = () => draft.ctl?.abort();
+$('#btnManual').onclick = () => { draft.scan = normalize({}); showResult(); };
+$('#btnSave').onclick = saveSpot;
+$('#newClose').onclick = closeNew;
+$('#detailClose').onclick = () => closeSheet('#detailSheet');
+$('#tabSpots').onclick = () => setTab('spots');
+$('#tabDex').onclick = () => setTab('dex');
+$('#dexSearch').oninput = e => { state.dexQuery = e.target.value; state.dexShown = 60; renderDex(); };
+$('#dexMore').onclick = () => { state.dexShown += 60; renderDex(); };
+$('#dexCredits').onclick = openCredits;
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (!$('#detailSheet').hidden) closeSheet('#detailSheet');
+  else if (!$('#newSheet').hidden) closeNew();
+});
+
+/* ---------- boot ---------- */
+async function boot(){
+  try { if (localStorage.getItem('spotbuch.tab') === 'dex') setTab('dex'); } catch {}
+  renderAll();
+  const cl = window.claude;
+  if (!cl?.use){ state.offline = true; renderAll(); return; }
+  const [db, assets, sample, user] = await Promise.all(
+    ['db', 'assets', 'sample', 'user'].map(n => cl.use(n).catch(() => null)));
+  state.db = db; state.assets = assets; state.sample = sample; state.user = user;
+  if (user){
+    const me = await user.me();
+    state.uid = me.id;
+    if (me.id){ $('#meAvatar').src = me.avatarUrl; $('#meName').textContent = me.name || 'Du'; $('#me').hidden = false; }
+  }
+  if (sample){
+    const lim = await sample.limits().catch(() => null);
+    if (lim?.images) state.maxShots = clamp(lim.images.maxCount || 1, 1, 4);
+    else state.sample = null;
+  }
+  if (!db){ state.offline = true; renderAll(); return; }
+  $('#fab').hidden = !assets;
+  db.collection('spots').orderBy('createdAt', 'desc').limit(300).onSnapshot(snap => {
+    state.spots = snap.docs.map(d => ({...d.data(), id: d.id}));
+    state.dbReady = true; renderAll();
+  }, () => {
+    state.dbReady = true; renderAll();
+    toast('Spots konnten nicht geladen werden. Lade die Seite neu.');
+  });
+}
+boot();
+})();
+</script>
+</body>
+</html>
